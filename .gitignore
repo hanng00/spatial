@@ -1,0 +1,5 @@
+# Dagster temporary files
+.tmp_**
+
+# Frontend 
+node_modules

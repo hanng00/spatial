@@ -1,0 +1,7 @@
+type: spatial_dagster.lib.custom_dbt_component.CustomDbtProjectComponent
+
+attributes:
+  select: "resource_type:model"
+  project:
+    project_dir: "{{ project_root }}/spatial_dbt"
+    profiles_dir: "{{ project_root }}/spatial_dbt"

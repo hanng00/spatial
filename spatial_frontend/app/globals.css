@@ -1,0 +1,336 @@
+@import "tailwindcss";
+@import "tw-animate-css";
+
+@custom-variant dark (&:is(.dark *));
+
+@theme inline {
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --font-sans: var(--font-sans);
+  --font-serif: var(--font-serif);
+  --color-sidebar-ring: var(--sidebar-ring);
+  --color-sidebar-border: var(--sidebar-border);
+  --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
+  --color-sidebar-accent: var(--sidebar-accent);
+  --color-sidebar-primary-foreground: var(--sidebar-primary-foreground);
+  --color-sidebar-primary: var(--sidebar-primary);
+  --color-sidebar-foreground: var(--sidebar-foreground);
+  --color-sidebar: var(--sidebar);
+  --color-chart-5: var(--chart-5);
+  --color-chart-4: var(--chart-4);
+  --color-chart-3: var(--chart-3);
+  --color-chart-2: var(--chart-2);
+  --color-chart-1: var(--chart-1);
+  --color-ring: var(--ring);
+  --color-input: var(--input);
+  --color-border: var(--border);
+  --color-destructive: var(--destructive);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-accent: var(--accent);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-muted: var(--muted);
+  --color-secondary-foreground: var(--secondary-foreground);
+  --color-secondary: var(--secondary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-primary: var(--primary);
+  --color-popover-foreground: var(--popover-foreground);
+  --color-popover: var(--popover);
+  --color-card-foreground: var(--card-foreground);
+  --color-card: var(--card);
+  --radius-sm: calc(var(--radius) - 4px);
+  --radius-md: calc(var(--radius) - 2px);
+  --radius-lg: var(--radius);
+  --radius-xl: calc(var(--radius) + 4px);
+  
+  /* Legora design tokens */
+  --spacing: 0.25rem;
+  --radius-xs: 0.125rem;
+  --radius-sm-legora: 0.25rem;
+  --radius-md-legora: 0.375rem;
+  --radius-lg-legora: 0.5rem;
+  --radius-1: 4px;
+  --radius-2: 6px;
+  --radius-3: 8px;
+  --radius-4: 10px;
+  --radius-5: 12px;
+  --radius-6: 16px;
+  --radius-7: 18px;
+  
+  /* Legora shadows */
+  --shadow-xs-legora: 0px 2px 1px -1px #00000014, 0px 0px 0px 0.7px var(--shadow-border-color, var(--color-border-default));
+  --shadow-md-legora: 0px 0px 0px 1px #0000000a, 0px 24px 48px 0px #0000000a, 0px 4px 16px 0px #0000000a;
+  --shadow-lg-legora: 0px 42px 172px 0px #00000008, 0px 17.547px 71.857px 0px #00000005, 0px 9.381px 38.418px 0px #00000005, 0px 5.259px 21.537px 0px #00000003, 0px 2.793px 11.438px 0px #00000003, 0px 1.162px 4.76px 0px #00000003;
+  --shadow-glass-xs: 0 0 0 1px var(--color-material-shadow-2, #00000005), 0 1px 0 0 var(--color-material-shadow-2, #00000005), 0 1px 1px 0 var(--color-material-glass-border, #fff) inset;
+  --shadow-glass-md: 0px 4px 16px 0px #00000005, 0px 24px 48px 0px var(--color-material-shadow-2), 0px 0px 0px 1px var(--color-material-shadow-2), 0px 1px 1px 0px var(--color-material-glass-border) inset;
+  --shadow-popup: 0px 0px 0px 1px #00000008, 0px 161px 45px 0px #0000, 0px 103px 41px 0px #00000003, 0px 58px 35px 0px #00000008, 0px 26px 26px 0px #0000000a, 0px 6px 14px 0px #0000000d;
+  --shadow-dialog: 0px 0px 0px 1px #0000000f, 0px 0px 0px 0.5px var(--color-border-default), 0px 161px 45px 0px #0000, 0px 103px 41px 0px #00000003, 0px 58px 35px 0px #00000008, 0px 26px 26px 0px #0000000a;
+  
+  /* Legora typography scale */
+  --text-larger-title: 32px;
+  --text-larger-title-line-height: 40px;
+  --text-larger-title-font-weight: 400;
+  --text-larger-title-letter-spacing: -0.4px;
+  --text-large-title: 26px;
+  --text-large-title-line-height: 32px;
+  --text-large-title-font-weight: 475;
+  --text-large-title-letter-spacing: -0.2px;
+  --text-title-1: 22px;
+  --text-title-1-line-height: 28px;
+  --text-title-1-font-weight: 475;
+  --text-title-2: 17px;
+  --text-title-2-line-height: 24px;
+  --text-title-2-font-weight: 600;
+  --text-15-plus: 15px;
+  --text-15-plus-line-height: 20px;
+  --text-15-plus-font-weight: 550;
+  --text-15-body: 15px;
+  --text-15-body-line-height: 24px;
+  --text-15-body-font-weight: 425;
+  --text-13-body: 13px;
+  --text-13-body-line-height: 20px;
+  --text-13-body-font-weight: 450;
+  
+  /* Legora colors */
+  --color-grey-50: #fafafa;
+  --color-grey-100: #f4f4f4;
+  --color-grey-200: #ebebeb;
+  --color-grey-300: #d8d8d8;
+  --color-grey-400: #b2b2b2;
+  --color-grey-500: #939393;
+  --color-grey-600: #6b6b6b;
+  --color-grey-700: #595959;
+  --color-grey-800: #333;
+  --color-grey-900: #2a2a2a;
+  --color-grey-950: #1c1c1c;
+  --color-border-default: #00000014;
+  --color-material-shadow-2: #00000005;
+  --color-material-glass-border: #fff;
+  
+  /* Legora brand colors */
+  --color-brand-copper: #e68846;
+  --color-brand-light-copper: #e1d5b6;
+  --color-brand-green: #a1c699;
+  --color-brand-light-green: #edfedc;
+  --color-brand-skyline: #4260a8;
+  --color-brand-light-skyline: #bdd4f0;
+  --color-brand-steel: #98a7aa;
+  --color-brand-sand: #ecece7;
+}
+
+:root {
+  --radius: 0.5rem;
+  
+  /* Investigative/Journalistic Color Palette - Deep, Dramatic, Distinctive */
+  /* Base - Rich charcoal navy, not generic dark */
+  --background: #0a0e1a;
+  --foreground: #f5f3f0;
+  
+  /* Cards - Deep slate with subtle warmth */
+  --card: #1a1f2e;
+  --card-foreground: #f5f3f0;
+  --popover: #1a1f2e;
+  --popover-foreground: #f5f3f0;
+  
+  /* Primary - Amber/Copper accent (investigative journalism, old newspaper ink) */
+  --primary: #d97706;
+  --primary-foreground: #0a0e1a;
+  
+  /* Secondary - Deep teal (data/tech feel) */
+  --secondary: #0e4a5f;
+  --secondary-foreground: #f5f3f0;
+  
+  /* Muted - Dark slate with subtle blue */
+  --muted: #1f2937;
+  --muted-foreground: #9ca3af;
+  
+  /* Accent - Sharp cyan for highlights */
+  --accent: #0891b2;
+  --accent-foreground: #f5f3f0;
+  
+  /* Destructive - Sharp red */
+  --destructive: #dc2626;
+  
+  /* Borders - Subtle but visible */
+  --border: rgba(217, 119, 6, 0.15);
+  --input: rgba(217, 119, 6, 0.2);
+  --ring: #d97706;
+  
+  /* Chart colors - Distinctive palette */
+  --chart-1: #0891b2;
+  --chart-2: #d97706;
+  --chart-3: #06b6d4;
+  --chart-4: #f59e0b;
+  --chart-5: #64748b;
+  
+  /* Sidebar */
+  --sidebar: #0f1419;
+  --sidebar-foreground: #f5f3f0;
+  --sidebar-primary: #d97706;
+  --sidebar-primary-foreground: #0a0e1a;
+  --sidebar-accent: #1f2937;
+  --sidebar-accent-foreground: #f5f3f0;
+  --sidebar-border: rgba(217, 119, 6, 0.15);
+  --sidebar-ring: #d97706;
+  
+  /* Custom investigative theme variables */
+  --investigative-amber: #d97706;
+  --investigative-amber-light: #f59e0b;
+  --investigative-teal: #0891b2;
+  --investigative-teal-light: #06b6d4;
+  --investigative-charcoal: #0a0e1a;
+  --investigative-slate: #1a1f2e;
+  --investigative-cream: #f5f3f0;
+}
+
+.dark {
+  /* Dark mode - Same investigative theme, slightly adjusted */
+  --background: #0a0e1a;
+  --foreground: #f5f3f0;
+  --card: #1a1f2e;
+  --card-foreground: #f5f3f0;
+  --popover: #1a1f2e;
+  --popover-foreground: #f5f3f0;
+  --primary: #d97706;
+  --primary-foreground: #0a0e1a;
+  --secondary: #0e4a5f;
+  --secondary-foreground: #f5f3f0;
+  --muted: #1f2937;
+  --muted-foreground: #9ca3af;
+  --accent: #0891b2;
+  --accent-foreground: #f5f3f0;
+  --destructive: #dc2626;
+  --border: rgba(217, 119, 6, 0.15);
+  --input: rgba(217, 119, 6, 0.2);
+  --ring: #d97706;
+  --chart-1: #0891b2;
+  --chart-2: #d97706;
+  --chart-3: #06b6d4;
+  --chart-4: #f59e0b;
+  --chart-5: #64748b;
+  --sidebar: #0f1419;
+  --sidebar-foreground: #f5f3f0;
+  --sidebar-primary: #d97706;
+  --sidebar-primary-foreground: #0a0e1a;
+  --sidebar-accent: #1f2937;
+  --sidebar-accent-foreground: #f5f3f0;
+  --sidebar-border: rgba(217, 119, 6, 0.15);
+  --sidebar-ring: #d97706;
+}
+
+@layer base {
+  * {
+    @apply border-border outline-ring/50;
+  }
+  body {
+    @apply bg-background text-foreground font-sans;
+    font-size: var(--text-15-body);
+    line-height: var(--text-15-body-line-height);
+    font-weight: var(--text-15-body-font-weight);
+    letter-spacing: -0.1px;
+    /* Atmospheric background with depth */
+    background-image: 
+      radial-gradient(circle at 20% 50%, rgba(217, 119, 6, 0.03) 0%, transparent 50%),
+      radial-gradient(circle at 80% 80%, rgba(8, 145, 178, 0.03) 0%, transparent 50%),
+      linear-gradient(180deg, #0a0e1a 0%, #0f1419 100%);
+    background-attachment: fixed;
+  }
+  h1 {
+    @apply font-serif;
+    font-size: var(--text-larger-title);
+    line-height: var(--text-larger-title-line-height);
+    font-weight: var(--text-larger-title-font-weight);
+    letter-spacing: var(--text-larger-title-letter-spacing);
+  }
+  h2 {
+    @apply font-serif;
+    font-size: var(--text-large-title);
+    line-height: var(--text-large-title-line-height);
+    font-weight: var(--text-large-title-font-weight);
+    letter-spacing: var(--text-large-title-letter-spacing);
+  }
+  h3 {
+    @apply font-serif;
+    font-size: var(--text-title-1);
+    line-height: var(--text-title-1-line-height);
+    font-weight: var(--text-title-1-font-weight);
+  }
+  h4 {
+    @apply font-serif;
+    font-size: var(--text-title-2);
+    line-height: var(--text-title-2-line-height);
+    font-weight: var(--text-title-2-font-weight);
+    letter-spacing: -0.01em;
+  }
+  h5, h6 {
+    @apply font-serif;
+    font-size: var(--text-15-plus);
+    line-height: var(--text-15-plus-line-height);
+    font-weight: var(--text-15-plus-font-weight);
+    letter-spacing: -0.2px;
+  }
+}
+
+/* Geometric pattern overlay - suggests connections/networks */
+@layer utilities {
+  .pattern-grid {
+    background-image: 
+      linear-gradient(rgba(217, 119, 6, 0.03) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(217, 119, 6, 0.03) 1px, transparent 1px);
+    background-size: 40px 40px;
+  }
+  
+  .pattern-dots {
+    background-image: radial-gradient(circle, rgba(217, 119, 6, 0.1) 1px, transparent 1px);
+    background-size: 20px 20px;
+  }
+  
+  .pattern-lines {
+    background-image: 
+      repeating-linear-gradient(
+        45deg,
+        transparent,
+        transparent 10px,
+        rgba(8, 145, 178, 0.02) 10px,
+        rgba(8, 145, 178, 0.02) 20px
+      );
+  }
+  
+  /* CSS-only animations - minimal, opacity only */
+  @keyframes fade-in-stagger {
+    from {
+      opacity: 0;
+    }
+    to {
+      opacity: 1;
+    }
+  }
+  
+  @keyframes shimmer {
+    0% {
+      background-position: -1000px 0;
+    }
+    100% {
+      background-position: 1000px 0;
+    }
+  }
+  
+  .animate-fade-in-stagger {
+    animation: fade-in-stagger 0.4s linear forwards;
+    opacity: 0;
+  }
+  
+  .animate-fade-in-stagger-delay-1 {
+    animation: fade-in-stagger 0.4s linear 0.05s forwards;
+    opacity: 0;
+  }
+  
+  .animate-fade-in-stagger-delay-2 {
+    animation: fade-in-stagger 0.4s linear 0.1s forwards;
+    opacity: 0;
+  }
+  
+  .animate-fade-in-stagger-delay-3 {
+    animation: fade-in-stagger 0.4s linear 0.15s forwards;
+    opacity: 0;
+  }
+}

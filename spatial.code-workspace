@@ -1,0 +1,14 @@
+{
+	"folders": [
+		{
+			"path": "."
+		},
+		{
+			"path": "spatial_dagster"
+		},
+		{
+			"path": "spatial_frontend"
+		}
+	],
+	"settings": {}
+}

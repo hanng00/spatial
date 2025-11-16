@@ -1,0 +1,135 @@
+version: 2
+
+models:
+  - name: int_politicians
+    description: "Master politician data from stg_personlista with cleaned and standardized fields"
+    columns:
+      - name: intressent_id
+        description: "Primary key - unique politician identifier (VARCHAR)"
+        tests:
+          - unique
+          - not_null
+      - name: display_name
+        description: "Standardized display name (VARCHAR, cleaned sorteringsnamn)"
+      - name: full_name
+        description: "Full name combining first and last name (VARCHAR)"
+      - name: party_clean
+        description: "Cleaned and standardized party name (VARCHAR, uppercase trimmed)"
+      - name: electoral_district
+        description: "Electoral district (VARCHAR)"
+      - name: birth_year
+        description: "Year of birth (VARCHAR, format: YYYY)"
+      - name: gender
+        description: "Gender (VARCHAR, values: 'man', 'kvinna')"
+      - name: member_status
+        description: "Current membership status (VARCHAR)"
+
+  - name: int_document_touchpoints
+    description: "Politician involvement in documents - extracted from stg_dokumentlista"
+    columns:
+      - name: intressent_id
+        description: "Politician identifier (VARCHAR, extracted from dokintressent JSON)"
+        tests:
+          - not_null
+      - name: dok_id
+        description: "Document identifier (VARCHAR)"
+      - name: document_date
+        description: "Date of document (VARCHAR, format: YYYY-MM-DD)"
+      - name: role
+        description: "Role in document (VARCHAR, values: 'avs', 'föredragande', etc.)"
+      - name: touchpoint_type
+        description: "Touchpoint type (VARCHAR, constant value: 'document')"
+      - name: touchpoint_category
+        description: "Touchpoint category (VARCHAR, constant value: 'authored')"
+
+  - name: int_speech_touchpoints
+    description: "Politician speeches from stg_anforandelista"
+    columns:
+      - name: speech_id
+        description: "Unique speech identifier (VARCHAR, systemnyckel)"
+      - name: speech_date
+        description: "Date of speech (VARCHAR, dok_datum, format: YYYY-MM-DD)"
+      - name: speaker_name
+        description: "Name of speaker (VARCHAR, talare)"
+      - name: intressent_id
+        description: "Politician identifier (VARCHAR)"
+      - name: touchpoint_type
+        description: "Touchpoint type (VARCHAR, constant value: 'speech')"
+      - name: touchpoint_category
+        description: "Touchpoint category (VARCHAR, constant value: 'spoken')"
+      - name: speech_length_chars
+        description: "Length of speech in characters (INTEGER)"
+
+  - name: int_voting_touchpoints
+    description: "Politician voting records from stg_voteringlista"
+    columns:
+      - name: intressent_id
+        description: "Politician identifier (VARCHAR)"
+        tests:
+          - not_null
+      - name: votering_id
+        description: "Voting identifier (VARCHAR)"
+      - name: vote_choice
+        description: "Vote choice (VARCHAR, values: 'Ja', 'Nej', 'Avstår')"
+      - name: touchpoint_type
+        description: "Touchpoint type (VARCHAR, constant value: 'vote')"
+      - name: touchpoint_category
+        description: "Touchpoint category (VARCHAR, constant value: 'voted')"
+      - name: parliamentary_session
+        description: "Parliamentary session (VARCHAR, rm format: YYYY/YY)"
+
+  - name: int_politician_touchpoints
+    description: "Unified view of all politician touchpoints across documents, speeches, and votes"
+    columns:
+      - name: intressent_id
+        description: "Politician identifier (VARCHAR, unified across all touchpoint types)"
+        tests:
+          - not_null
+      - name: touchpoint_id
+        description: "Unique identifier for the touchpoint (VARCHAR, varies by type: dok_id, speech_id, or votering_id)"
+      - name: touchpoint_date
+        description: "Date of the touchpoint (VARCHAR, standardized date format YYYY-MM-DD)"
+      - name: touchpoint_type
+        description: "Type of touchpoint (VARCHAR, values: 'vote', 'speech', 'document')"
+      - name: touchpoint_category
+        description: "Category of touchpoint (VARCHAR, values: 'voted', 'spoken', 'authored')"
+      - name: party
+        description: "Politician's party (VARCHAR, from respective source tables)"
+      - name: parliamentary_session
+        description: "Parliamentary session (VARCHAR, rm format YYYY/YY, null for documents)"
+      - name: vote_choice
+        description: "Vote choice (VARCHAR, values: 'Ja', 'Nej', 'Avstår', null for non-voting touchpoints)"
+      - name: speech_length_chars
+        description: "Speech length in characters (INTEGER, null for non-speech touchpoints)"
+      - name: touchpoint_year
+        description: "Year of touchpoint (INTEGER, extracted from touchpoint_date)"
+      - name: touchpoint_month
+        description: "Month of touchpoint (INTEGER, extracted from touchpoint_date, 1-12)"
+      - name: touchpoint_type_label
+        description: "Human-readable touchpoint type (VARCHAR, values: 'Voting', 'Speaking', 'Document')"
+
+  - name: int_document_geography
+    description: "Document geography enrichment - links documents to geographic locations via politician involvement"
+    columns:
+      - name: dok_id
+        description: "Document identifier (VARCHAR)"
+        tests:
+          - not_null
+      - name: document_date
+        description: "Date of document (VARCHAR, format: YYYY-MM-DD)"
+      - name: document_year
+        description: "Year extracted from document_date (INTEGER)"
+      - name: document_month
+        description: "Month extracted from document_date (INTEGER, 1-12)"
+      - name: electoral_district
+        description: "Electoral district from politician (VARCHAR, valkrets)"
+      - name: intressent_id
+        description: "Politician identifier (VARCHAR)"
+      - name: party
+        description: "Politician's party (VARCHAR)"
+      - name: document_type
+        description: "Document type (VARCHAR, e.g., 'fr', 'prop', 'bet')"
+      - name: committee
+        description: "Committee/organ (VARCHAR, e.g., 'KU', 'S', 'eun')"
+      - name: explicit_location
+        description: "Explicit location from plats field (VARCHAR, often null)"

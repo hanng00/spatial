@@ -1,0 +1,61 @@
+diff --git a/node_modules/@luma.gl/core/dist/adapter/canvas-context.js b/node_modules/@luma.gl/core/dist/adapter/canvas-context.js
+index d4436e1..c347cf1 100644
+--- a/node_modules/@luma.gl/core/dist/adapter/canvas-context.js
++++ b/node_modules/@luma.gl/core/dist/adapter/canvas-context.js
+@@ -166,6 +166,11 @@ export class CanvasContext {
+     }
+     /** Returns the biggest allowed framebuffer size. @todo Allow the application to limit this? */
+     getMaxDrawingBufferSize() {
++        // Guard against partially initialized device
++        if (!this.device?.limits?.maxTextureDimension2D) {
++            // Return a safe default (4096 is a common WebGL2 max texture size)
++            return [4096, 4096];
++        }
+         const maxTextureDimension = this.device.limits.maxTextureDimension2D;
+         return [maxTextureDimension, maxTextureDimension];
+     }
+@@ -251,6 +256,13 @@ export class CanvasContext {
+         if (!entry) {
+             return;
+         }
++        // Guard: device may not be initialized yet when ResizeObserver fires
++        // This can happen during construction when super() calls setup ResizeObserver
++        // before the subclass sets this.device. See WebGLCanvasContext constructor.
++        // Also check that device.limits exists, as device might be partially initialized.
++        if (!this.device || !this.device.limits) {
++            return;
++        }
+         // Update CSS size using content box size
+         this.cssWidth = entry.contentBoxSize[0].inlineSize;
+         this.cssHeight = entry.contentBoxSize[0].blockSize;
+diff --git a/node_modules/@luma.gl/core/src/adapter/canvas-context.ts b/node_modules/@luma.gl/core/src/adapter/canvas-context.ts
+index ddaeb27..bba0a39 100644
+--- a/node_modules/@luma.gl/core/src/adapter/canvas-context.ts
++++ b/node_modules/@luma.gl/core/src/adapter/canvas-context.ts
+@@ -235,6 +235,11 @@ export abstract class CanvasContext {
+ 
+   /** Returns the biggest allowed framebuffer size. @todo Allow the application to limit this? */
+   getMaxDrawingBufferSize(): [number, number] {
++    // Guard against partially initialized device
++    if (!this.device?.limits?.maxTextureDimension2D) {
++      // Return a safe default (4096 is a common WebGL2 max texture size)
++      return [4096, 4096];
++    }
+     const maxTextureDimension = this.device.limits.maxTextureDimension2D;
+     return [maxTextureDimension, maxTextureDimension];
+   }
+@@ -350,6 +355,14 @@ export abstract class CanvasContext {
+       return;
+     }
+ 
++    // Guard: device may not be initialized yet when ResizeObserver fires
++    // This can happen during construction when super() calls setup ResizeObserver
++    // before the subclass sets this.device. See WebGLCanvasContext constructor.
++    // Also check that device.limits exists, as device might be partially initialized.
++    if (!this.device || !this.device.limits) {
++      return;
++    }
++
+     // Update CSS size using content box size
+     this.cssWidth = entry.contentBoxSize[0].inlineSize;
+     this.cssHeight = entry.contentBoxSize[0].blockSize;
