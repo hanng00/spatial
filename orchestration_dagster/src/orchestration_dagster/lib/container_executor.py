@@ -1,0 +1,308 @@
+"""
+ContainerExecutor Resource - Abstracts container execution.
+
+Locally: Uses Docker SDK to execute containers on Docker network
+Production: Uses ECS Tasks to execute containers in AWS
+
+This allows assets to be environment-agnostic - same code works locally and in production.
+"""
+import os
+import time
+from typing import Dict, List, Optional
+
+import dagster as dg
+
+
+class ExecutionResult:
+    """Result of container execution."""
+    
+    def __init__(
+        self,
+        success: bool,
+        exit_code: int,
+        stdout: str = "",
+        stderr: str = "",
+        logs: List[str] = None,
+    ):
+        self.success = success
+        self.exit_code = exit_code
+        self.stdout = stdout
+        self.stderr = stderr
+        self.logs = logs or []
+
+
+class ContainerExecutor(dg.ConfigurableResource):
+    """Resource that abstracts container execution - Docker locally, ECS in production."""
+    
+    environment: str
+    docker_network: str = "spatial-network"
+    docker_host: str = "unix:///var/run/docker.sock"
+    ecs_cluster: Optional[str] = None
+    ecs_task_definition: Optional[str] = None
+    ecs_subnets: Optional[List[str]] = None
+    ecs_security_groups: Optional[List[str]] = None
+    
+    def execute(
+        self,
+        context,
+        image: str,
+        command: List[str],
+        env_vars: Optional[Dict[str, str]] = None,
+        name: Optional[str] = None,
+        **kwargs,
+    ) -> ExecutionResult:
+        """
+        Execute a container - abstracts local Docker vs production ECS.
+        
+        Args:
+            context: Dagster resource context
+            image: Container image name (e.g., "ingestion:latest")
+            command: Command to run in container (e.g., ["run", "anforandelista"])
+            env_vars: Environment variables to pass to container
+            name: Optional container/task name
+            **kwargs: Additional execution options
+        
+        Returns:
+            ExecutionResult with success status, exit code, logs, etc.
+        """
+        env_vars = env_vars or {}
+        
+        # Detect environment if not explicitly set
+        environment = self.environment
+        if environment == "local" and os.environ.get("DAGSTER_ENVIRONMENT") == "production":
+            environment = "production"
+        elif environment == "local" and os.environ.get("AWS_EXECUTION_ENV"):
+            # Running in ECS/Lambda
+            environment = "production"
+        
+        if environment == "local":
+            return self._execute_docker(context, image, command, env_vars, name, **kwargs)
+        else:
+            return self._execute_ecs(context, image, command, env_vars, name, **kwargs)
+    
+    def _execute_docker(
+        self,
+        context,
+        image: str,
+        command: List[str],
+        env_vars: Dict[str, str],
+        name: Optional[str],
+        **kwargs,
+    ) -> ExecutionResult:
+        """Execute container via Docker SDK (local development)."""
+        try:
+            import docker
+        except ImportError:
+            raise ImportError(
+                "docker package required for local execution. Install with: pip install docker"
+            )
+        
+        try:
+            client = docker.from_env()
+            
+            # Check if network exists, create if not
+            try:
+                client.networks.get(self.docker_network)
+            except docker.errors.NotFound:
+                context.log.info(f"Creating Docker network: {self.docker_network}")
+                client.networks.create(self.docker_network, driver="bridge")
+            
+            context.log.info(f"Executing container: {image} with command: {command}")
+            
+            # Run container with detach=True to get container object, then wait for completion
+            container = client.containers.run(
+                image=image,
+                command=command,
+                environment=env_vars,
+                network=self.docker_network,
+                detach=True,  # Get container object
+                name=name,
+                mem_limit=kwargs.get("mem_limit", "2g"),
+                cpu_count=kwargs.get("cpu_count", 1),
+                stdout=True,
+                stderr=True,
+            )
+            
+            # Wait for container to finish and get exit code
+            exit_code = container.wait().get("StatusCode", 1)
+            success = exit_code == 0
+            
+            # Get logs from container
+            logs_bytes = container.logs(stdout=True, stderr=True)
+            logs = logs_bytes.decode("utf-8").split("\n") if logs_bytes else []
+            
+            # Stream logs to Dagster context
+            for line in logs:
+                if line.strip():
+                    context.log.info(line)
+            
+            # Remove container after getting logs
+            container.remove()
+            
+            if not success:
+                context.log.error(f"Container exited with code {exit_code}")
+                return ExecutionResult(
+                    success=False,
+                    exit_code=exit_code,
+                    stdout="\n".join(logs),
+                    stderr="",
+                    logs=logs,
+                )
+            
+            context.log.info(f"Container execution succeeded")
+            return ExecutionResult(
+                success=True,
+                exit_code=exit_code,
+                stdout="\n".join(logs),
+                stderr="",
+                logs=logs,
+            )
+            
+        except docker.errors.ImageNotFound:
+            raise dg.Failure(
+                f"Container image not found: {image}. "
+                f"Build it with: docker build -t {image} <path>",
+                metadata={"image": image, "command": command},
+            )
+        except docker.errors.APIError as e:
+            raise dg.Failure(
+                f"Docker API error: {e}",
+                metadata={"image": image, "command": command, "error": str(e)},
+            )
+        except Exception as e:
+            raise dg.Failure(
+                f"Failed to execute container: {e}",
+                metadata={"image": image, "command": command, "error": str(e)},
+            )
+    
+    def _execute_ecs(
+        self,
+        context,
+        image: str,
+        command: List[str],
+        env_vars: Dict[str, str],
+        name: Optional[str],
+        **kwargs,
+    ) -> ExecutionResult:
+        """Execute container via ECS Task (production)."""
+        try:
+            import boto3
+        except ImportError:
+            raise ImportError(
+                "boto3 required for production execution. Install with: pip install boto3"
+            )
+        
+        if not self.ecs_cluster:
+            raise ValueError("ecs_cluster must be set for production execution")
+        if not self.ecs_task_definition:
+            raise ValueError("ecs_task_definition must be set for production execution")
+        if not self.ecs_subnets:
+            raise ValueError("ecs_subnets must be set for production execution")
+        
+        ecs_client = boto3.client("ecs")
+        logs_client = boto3.client("logs")
+        
+        context.log.info(f"Executing ECS task: {image} with command: {command}")
+        
+        # Convert env_vars to ECS format
+        environment = [{"name": k, "value": v} for k, v in env_vars.items()]
+        
+        try:
+            # Run ECS task
+            response = ecs_client.run_task(
+                cluster=self.ecs_cluster,
+                taskDefinition=self.ecs_task_definition,
+                launchType="FARGATE",
+                networkConfiguration={
+                    "awsvpcConfiguration": {
+                        "subnets": self.ecs_subnets,
+                        "securityGroups": self.ecs_security_groups or [],
+                        "assignPublicIp": "ENABLED",
+                    }
+                },
+                overrides={
+                    "containerOverrides": [
+                        {
+                            "name": "container",  # Default container name
+                            "command": command,
+                            "environment": environment,
+                        }
+                    ]
+                },
+            )
+            
+            task_arn = response["tasks"][0]["taskArn"]
+            context.log.info(f"Started ECS task: {task_arn}")
+            
+            # Wait for task completion and stream logs
+            return self._wait_for_ecs_task_completion(
+                context, ecs_client, logs_client, self.ecs_cluster, task_arn
+            )
+            
+        except Exception as e:
+            raise dg.Failure(
+                f"Failed to execute ECS task: {e}",
+                metadata={"image": image, "command": command, "error": str(e)},
+            )
+    
+    def _wait_for_ecs_task_completion(
+        self,
+        context,
+        ecs_client,
+        logs_client,
+        cluster: str,
+        task_arn: str,
+        poll_interval: int = 5,
+        max_wait: int = 3600,
+    ) -> ExecutionResult:
+        """Wait for ECS task to complete and stream logs."""
+        start_time = time.time()
+        logs = []
+        
+        while time.time() - start_time < max_wait:
+            # Get task status
+            response = ecs_client.describe_tasks(cluster=cluster, tasks=[task_arn])
+            task = response["tasks"][0]
+            last_status = task["lastStatus"]
+            desired_status = task.get("desiredStatus")
+            
+            # Get logs (if available)
+            try:
+                # Extract log group/stream from task definition
+                # This is simplified - in practice, you'd get this from task definition
+                log_group = f"/ecs/{self.ecs_task_definition}"
+                log_stream = task_arn.split("/")[-1]
+                
+                log_response = logs_client.get_log_events(
+                    logGroupName=log_group,
+                    logStreamName=log_stream,
+                )
+                
+                for event in log_response.get("events", []):
+                    log_line = event["message"]
+                    logs.append(log_line)
+                    context.log.info(log_line)
+            except Exception:
+                # Logs might not be available yet
+                pass
+            
+            if last_status == "STOPPED":
+                # Task completed
+                exit_code = task.get("containers", [{}])[0].get("exitCode", 0)
+                success = exit_code == 0
+                
+                return ExecutionResult(
+                    success=success,
+                    exit_code=exit_code,
+                    stdout="\n".join(logs),
+                    stderr="",
+                    logs=logs,
+                )
+            
+            time.sleep(poll_interval)
+        
+        raise dg.Failure(
+            f"ECS task did not complete within {max_wait} seconds",
+            metadata={"task_arn": task_arn, "last_status": last_status},
+        )
+

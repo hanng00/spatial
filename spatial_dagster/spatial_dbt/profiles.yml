@@ -1,9 +1,0 @@
-riksbevakning:
-  target: dev
-  outputs:
-    dev:
-      type: duckdb
-      # MotherDuck connection with token from environment variable
-      path: "md:spatial_dagster?motherduck_token={{env_var('MOTHERDUCK_ACCESS_TOKEN')}}"
-      threads: 4
-
