@@ -1,0 +1,233 @@
+# Dagster for App Runner with nginx basic auth
+# Runs: nginx (port 8080, basic auth) → dagster webserver (port 3000)
+# Also runs dagster-daemon for schedules/sensors (optional, can be disabled)
+
+FROM python:3.11-slim
+
+WORKDIR /app
+
+# Install uv, nginx, and supervisor
+COPY --from=ghcr.io/astral-sh/uv:latest /uv /usr/local/bin/uv
+
+RUN apt-get update && apt-get install -y \
+    gcc \
+    git \
+    nginx \
+    apache2-utils \
+    supervisor \
+    curl \
+    && rm -rf /var/lib/apt/lists/*
+
+# Copy orchestration project files
+COPY orchestration_dagster/pyproject.toml orchestration_dagster/uv.lock* ./
+COPY orchestration_dagster/src/ ./src/
+
+# Install dependencies with uv (including dagster-webserver for production)
+RUN uv sync --frozen
+
+# Copy dbt project (needed for DbtProjectComponent to read manifest)
+COPY transformations_dbt/ ./transformations_dbt/
+
+# Create symlink to match local path structure
+RUN ln -sf /app/transformations_dbt /transformations_dbt
+
+# Prepare dbt project (runs dbt deps and dbt parse to create manifest.json)
+RUN uv run dagster-dbt project prepare-and-package --components /app
+
+# ============================================
+# nginx configuration with basic auth
+# ============================================
+RUN mkdir -p /etc/nginx/conf.d
+
+# nginx config - reverse proxy to Dagster with basic auth
+COPY <<'EOF' /etc/nginx/nginx.conf
+user www-data;
+worker_processes auto;
+pid /run/nginx.pid;
+
+events {
+    worker_connections 768;
+}
+
+http {
+    sendfile on;
+    tcp_nopush on;
+    types_hash_max_size 2048;
+
+    include /etc/nginx/mime.types;
+    default_type application/octet-stream;
+
+    access_log /dev/stdout;
+    error_log /dev/stderr;
+
+    gzip on;
+
+    # Health check endpoint (no auth required)
+    server {
+        listen 8080;
+        server_name _;
+
+        # Health check for App Runner (no auth)
+        location /health {
+            access_log off;
+            return 200 'OK';
+            add_header Content-Type text/plain;
+        }
+
+        # All other requests require basic auth
+        location / {
+            auth_basic "Dagster";
+            auth_basic_user_file /etc/nginx/.htpasswd;
+
+            proxy_pass http://127.0.0.1:3000;
+            proxy_http_version 1.1;
+            proxy_set_header Upgrade $http_upgrade;
+            proxy_set_header Connection "upgrade";
+            proxy_set_header Host $host;
+            proxy_set_header X-Real-IP $remote_addr;
+            proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+            proxy_set_header X-Forwarded-Proto $scheme;
+            proxy_read_timeout 300s;
+            proxy_connect_timeout 75s;
+        }
+    }
+}
+EOF
+
+# ============================================
+# Supervisor configuration
+# ============================================
+COPY <<'EOF' /etc/supervisor/conf.d/supervisord.conf
+[supervisord]
+nodaemon=true
+user=root
+logfile=/dev/stdout
+logfile_maxbytes=0
+pidfile=/var/run/supervisord.pid
+
+[program:nginx]
+command=/usr/sbin/nginx -g "daemon off;"
+autostart=true
+autorestart=true
+stdout_logfile=/dev/stdout
+stdout_logfile_maxbytes=0
+stderr_logfile=/dev/stderr
+stderr_logfile_maxbytes=0
+
+[program:dagster-webserver]
+command=/app/.venv/bin/dagster-webserver -h 0.0.0.0 -p 3000
+directory=/app
+autostart=true
+autorestart=true
+stdout_logfile=/dev/stdout
+stdout_logfile_maxbytes=0
+stderr_logfile=/dev/stderr
+stderr_logfile_maxbytes=0
+environment=DAGSTER_HOME="/app/dagster_home"
+
+[program:dagster-daemon]
+command=/app/.venv/bin/dagster-daemon run
+directory=/app
+autostart=true
+autorestart=true
+stdout_logfile=/dev/stdout
+stdout_logfile_maxbytes=0
+stderr_logfile=/dev/stderr
+stderr_logfile_maxbytes=0
+environment=DAGSTER_HOME="/app/dagster_home"
+EOF
+
+# ============================================
+# Dagster configuration
+# ============================================
+RUN mkdir -p /app/dagster_home
+
+# Dagster workspace configuration
+COPY <<'EOF' /app/dagster_home/workspace.yaml
+load_from:
+  - python_module:
+      module_name: orchestration_dagster.definitions
+      working_directory: /app
+EOF
+
+# Dagster instance configuration (uses DSQL via env var)
+COPY <<'EOF' /app/dagster_home/dagster.yaml
+# Dagster instance configuration for production
+# Uses PostgreSQL (DSQL) for run storage and event log
+
+storage:
+  postgres:
+    postgres_url:
+      env: DAGSTER_PG_URL
+
+run_launcher:
+  module: dagster.core.launcher.default_run_launcher
+  class: DefaultRunLauncher
+
+run_coordinator:
+  module: dagster.core.run_coordinator
+  class: DefaultRunCoordinator
+
+compute_logs:
+  module: dagster.core.storage.local_compute_log_manager
+  class: LocalComputeLogManager
+  config:
+    base_dir: /app/dagster_home/compute_logs
+
+local_artifact_storage:
+  module: dagster.core.storage.root
+  class: LocalArtifactStorage
+  config:
+    base_dir: /app/dagster_home/artifacts
+EOF
+
+# ============================================
+# Startup script
+# ============================================
+COPY <<'STARTUP' /app/start.sh
+#!/bin/bash
+set -e
+
+echo "=== Starting Dagster on App Runner ==="
+
+# Create htpasswd file from environment variables
+if [ -n "$BASIC_AUTH_USERNAME" ] && [ -n "$BASIC_AUTH_PASSWORD" ]; then
+    echo "Setting up basic auth for user: $BASIC_AUTH_USERNAME"
+    htpasswd -bc /etc/nginx/.htpasswd "$BASIC_AUTH_USERNAME" "$BASIC_AUTH_PASSWORD"
+else
+    echo "WARNING: BASIC_AUTH_USERNAME or BASIC_AUTH_PASSWORD not set!"
+    echo "Creating default credentials (admin/admin) - CHANGE THIS!"
+    htpasswd -bc /etc/nginx/.htpasswd admin admin
+fi
+
+# Build DSQL connection string with IAM auth if DSQL_CLUSTER_ENDPOINT is set
+if [ -n "$DSQL_CLUSTER_ENDPOINT" ]; then
+    echo "Configuring DSQL connection: $DSQL_CLUSTER_ENDPOINT"
+    # DSQL uses IAM auth - connection string format
+    # For now, we use a simpler approach - direct connection
+    export DAGSTER_PG_URL="postgresql://admin@${DSQL_CLUSTER_ENDPOINT}:5432/postgres?sslmode=require"
+else
+    echo "WARNING: DSQL_CLUSTER_ENDPOINT not set - using local SQLite storage"
+    # Remove postgres config, use default SQLite
+    rm -f /app/dagster_home/dagster.yaml
+fi
+
+# Create required directories
+mkdir -p /app/dagster_home/compute_logs
+mkdir -p /app/dagster_home/artifacts
+
+echo "Starting supervisor (nginx + dagster)..."
+exec /usr/bin/supervisord -c /etc/supervisor/conf.d/supervisord.conf
+STARTUP
+
+RUN chmod +x /app/start.sh
+
+# Expose nginx port (App Runner health checks this)
+EXPOSE 8080
+
+# Health check
+HEALTHCHECK --interval=30s --timeout=10s --start-period=60s --retries=3 \
+    CMD curl -f http://localhost:8080/health || exit 1
+
+CMD ["/app/start.sh"]
+

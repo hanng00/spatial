@@ -1,0 +1,21 @@
+{
+  "version": "48.0.0",
+  "files": {
+    "2436bf32ce6223ed645a0e536fe58cc7d182b6e6d32d8c500634626db2101d51": {
+      "displayName": "SpatialEcsTasksStack Template",
+      "source": {
+        "path": "SpatialEcsTasksStack.template.json",
+        "packaging": "file"
+      },
+      "destinations": {
+        "current_account-us-east-1-6abe8a93": {
+          "bucketName": "cdk-hnb659fds-assets-${AWS::AccountId}-us-east-1",
+          "objectKey": "2436bf32ce6223ed645a0e536fe58cc7d182b6e6d32d8c500634626db2101d51.json",
+          "region": "us-east-1",
+          "assumeRoleArn": "arn:${AWS::Partition}:iam::${AWS::AccountId}:role/cdk-hnb659fds-file-publishing-role-${AWS::AccountId}-us-east-1"
+        }
+      }
+    }
+  },
+  "dockerImages": {}
+}

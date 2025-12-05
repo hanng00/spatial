@@ -5,14 +5,14 @@
 
 'use client'
 
+import type {
+    BaseLayerConfig,
+    LayerDefinition,
+    LayerTooltip
+} from '@/features/map/layers/base/types'
 import type { Layer } from '@deck.gl/core'
 import { ScatterplotLayer } from 'deck.gl'
-import type { DocumentGeographyPoint } from '../../data/adapters/documentGeographyAdapter'
-import type {
-  BaseLayerConfig,
-  LayerDefinition,
-  LayerTooltip
-} from '../base/types'
+import type { DocumentGeographyPoint } from '../adapters/documentGeographyAdapter'
 
 /**
  * DocumentGeography layer-specific configuration

@@ -1,0 +1,21 @@
+{
+  "version": "48.0.0",
+  "files": {
+    "8789579f2dc90a8270827a968dd8b09c820ab64f1067daf8259b1a9f9382463e": {
+      "displayName": "SpatialDagsterStack Template",
+      "source": {
+        "path": "SpatialDagsterStack.template.json",
+        "packaging": "file"
+      },
+      "destinations": {
+        "current_account-us-east-1-ad403492": {
+          "bucketName": "cdk-hnb659fds-assets-${AWS::AccountId}-us-east-1",
+          "objectKey": "8789579f2dc90a8270827a968dd8b09c820ab64f1067daf8259b1a9f9382463e.json",
+          "region": "us-east-1",
+          "assumeRoleArn": "arn:${AWS::Partition}:iam::${AWS::AccountId}:role/cdk-hnb659fds-file-publishing-role-${AWS::AccountId}-us-east-1"
+        }
+      }
+    }
+  },
+  "dockerImages": {}
+}

@@ -69,15 +69,60 @@ Assets don't know the difference - same code works everywhere.
 3. **View logs in Dagster UI** - Streamed from containers
 4. **Same experience locally and in production**
 
-## Production Deployment
+## Production Deployment (AWS)
 
-See `DX_ARCHITECTURE.md` for detailed deployment guide.
+The infrastructure is managed with AWS CDK. See `infra/README.md` for detailed setup.
+
+### Architecture
+
+```
+┌─────────────────────────────────────────────────────────────┐
+│  App Runner (Dagster UI) - scales to zero                   │
+│  └── nginx (basic auth) → dagster webserver + daemon        │
+└─────────────────────────────────────────────────────────────┘
+         │
+         ├──→ DSQL (Aurora serverless PostgreSQL)
+         │
+         └──→ ECS Tasks (Fargate Spot, on-demand)
+                  ├── spatial/ingestion
+                  └── spatial/transformations-dbt
+                           │
+                           ↓
+                      MotherDuck (SaaS)
+                           ↑
+                           │
+┌─────────────────────────────────────────────────────────────┐
+│  Amplify (Next.js frontend)                                 │
+└─────────────────────────────────────────────────────────────┘
+```
+
+### Quick Deploy
+
+```bash
+# Full deployment (infra + images + secrets)
+./scripts/deploy.sh all
+
+# Or step by step:
+./scripts/deploy.sh infra    # Deploy CDK stacks
+./scripts/deploy.sh images   # Build & push Docker images
+./scripts/deploy.sh secrets  # Configure secrets
+```
+
+### Estimated Costs
+
+| Service | Monthly Cost |
+|---------|-------------|
+| App Runner | ~$5-10 (scales to zero) |
+| DSQL | ~$0-1 (serverless) |
+| ECS Fargate Spot | ~$0-5 |
+| ECR | ~$0-1 |
+| **Total** | **~$5-20/mo** |
 
 ### Key Points
 
 - Set `DAGSTER_ENVIRONMENT=production`
-- Configure ECS cluster, task definitions, subnets, security groups
-- ContainerExecutor automatically uses ECS instead of Docker
+- ContainerExecutor automatically uses ECS Fargate Spot
+- Dagster UI cold start: ~60-90 seconds (scales to zero)
 - Same Dagster UI, same assets, same workflow
 
 ## Module Details

@@ -1,0 +1,858 @@
+{
+ "Description": "ECS task definitions for data pipeline workers",
+ "Resources": {
+  "SpatialVpc8D47CAA8": {
+   "Type": "AWS::EC2::VPC",
+   "Properties": {
+    "CidrBlock": "10.0.0.0/16",
+    "EnableDnsHostnames": true,
+    "EnableDnsSupport": true,
+    "InstanceTenancy": "default",
+    "Tags": [
+     {
+      "Key": "Name",
+      "Value": "SpatialEcsTasksStack/SpatialVpc"
+     }
+    ]
+   },
+   "Metadata": {
+    "aws:cdk:path": "SpatialEcsTasksStack/SpatialVpc/Resource"
+   }
+  },
+  "SpatialVpcpublicSubnet1Subnet6DBC2CD0": {
+   "Type": "AWS::EC2::Subnet",
+   "Properties": {
+    "AvailabilityZone": {
+     "Fn::Select": [
+      0,
+      {
+       "Fn::GetAZs": ""
+      }
+     ]
+    },
+    "CidrBlock": "10.0.0.0/24",
+    "MapPublicIpOnLaunch": true,
+    "Tags": [
+     {
+      "Key": "aws-cdk:subnet-name",
+      "Value": "public"
+     },
+     {
+      "Key": "aws-cdk:subnet-type",
+      "Value": "Public"
+     },
+     {
+      "Key": "Name",
+      "Value": "SpatialEcsTasksStack/SpatialVpc/publicSubnet1"
+     }
+    ],
+    "VpcId": {
+     "Ref": "SpatialVpc8D47CAA8"
+    }
+   },
+   "Metadata": {
+    "aws:cdk:path": "SpatialEcsTasksStack/SpatialVpc/publicSubnet1/Subnet"
+   }
+  },
+  "SpatialVpcpublicSubnet1RouteTable99DC7044": {
+   "Type": "AWS::EC2::RouteTable",
+   "Properties": {
+    "Tags": [
+     {
+      "Key": "Name",
+      "Value": "SpatialEcsTasksStack/SpatialVpc/publicSubnet1"
+     }
+    ],
+    "VpcId": {
+     "Ref": "SpatialVpc8D47CAA8"
+    }
+   },
+   "Metadata": {
+    "aws:cdk:path": "SpatialEcsTasksStack/SpatialVpc/publicSubnet1/RouteTable"
+   }
+  },
+  "SpatialVpcpublicSubnet1RouteTableAssociation7999DEBE": {
+   "Type": "AWS::EC2::SubnetRouteTableAssociation",
+   "Properties": {
+    "RouteTableId": {
+     "Ref": "SpatialVpcpublicSubnet1RouteTable99DC7044"
+    },
+    "SubnetId": {
+     "Ref": "SpatialVpcpublicSubnet1Subnet6DBC2CD0"
+    }
+   },
+   "Metadata": {
+    "aws:cdk:path": "SpatialEcsTasksStack/SpatialVpc/publicSubnet1/RouteTableAssociation"
+   }
+  },
+  "SpatialVpcpublicSubnet1DefaultRouteEEF57F0D": {
+   "Type": "AWS::EC2::Route",
+   "Properties": {
+    "DestinationCidrBlock": "0.0.0.0/0",
+    "GatewayId": {
+     "Ref": "SpatialVpcIGW9D08D19B"
+    },
+    "RouteTableId": {
+     "Ref": "SpatialVpcpublicSubnet1RouteTable99DC7044"
+    }
+   },
+   "DependsOn": [
+    "SpatialVpcVPCGW433E7BB9"
+   ],
+   "Metadata": {
+    "aws:cdk:path": "SpatialEcsTasksStack/SpatialVpc/publicSubnet1/DefaultRoute"
+   }
+  },
+  "SpatialVpcpublicSubnet2Subnet97374BD1": {
+   "Type": "AWS::EC2::Subnet",
+   "Properties": {
+    "AvailabilityZone": {
+     "Fn::Select": [
+      1,
+      {
+       "Fn::GetAZs": ""
+      }
+     ]
+    },
+    "CidrBlock": "10.0.1.0/24",
+    "MapPublicIpOnLaunch": true,
+    "Tags": [
+     {
+      "Key": "aws-cdk:subnet-name",
+      "Value": "public"
+     },
+     {
+      "Key": "aws-cdk:subnet-type",
+      "Value": "Public"
+     },
+     {
+      "Key": "Name",
+      "Value": "SpatialEcsTasksStack/SpatialVpc/publicSubnet2"
+     }
+    ],
+    "VpcId": {
+     "Ref": "SpatialVpc8D47CAA8"
+    }
+   },
+   "Metadata": {
+    "aws:cdk:path": "SpatialEcsTasksStack/SpatialVpc/publicSubnet2/Subnet"
+   }
+  },
+  "SpatialVpcpublicSubnet2RouteTable0DBABA4D": {
+   "Type": "AWS::EC2::RouteTable",
+   "Properties": {
+    "Tags": [
+     {
+      "Key": "Name",
+      "Value": "SpatialEcsTasksStack/SpatialVpc/publicSubnet2"
+     }
+    ],
+    "VpcId": {
+     "Ref": "SpatialVpc8D47CAA8"
+    }
+   },
+   "Metadata": {
+    "aws:cdk:path": "SpatialEcsTasksStack/SpatialVpc/publicSubnet2/RouteTable"
+   }
+  },
+  "SpatialVpcpublicSubnet2RouteTableAssociation211EC14A": {
+   "Type": "AWS::EC2::SubnetRouteTableAssociation",
+   "Properties": {
+    "RouteTableId": {
+     "Ref": "SpatialVpcpublicSubnet2RouteTable0DBABA4D"
+    },
+    "SubnetId": {
+     "Ref": "SpatialVpcpublicSubnet2Subnet97374BD1"
+    }
+   },
+   "Metadata": {
+    "aws:cdk:path": "SpatialEcsTasksStack/SpatialVpc/publicSubnet2/RouteTableAssociation"
+   }
+  },
+  "SpatialVpcpublicSubnet2DefaultRouteE3A22B2E": {
+   "Type": "AWS::EC2::Route",
+   "Properties": {
+    "DestinationCidrBlock": "0.0.0.0/0",
+    "GatewayId": {
+     "Ref": "SpatialVpcIGW9D08D19B"
+    },
+    "RouteTableId": {
+     "Ref": "SpatialVpcpublicSubnet2RouteTable0DBABA4D"
+    }
+   },
+   "DependsOn": [
+    "SpatialVpcVPCGW433E7BB9"
+   ],
+   "Metadata": {
+    "aws:cdk:path": "SpatialEcsTasksStack/SpatialVpc/publicSubnet2/DefaultRoute"
+   }
+  },
+  "SpatialVpcIGW9D08D19B": {
+   "Type": "AWS::EC2::InternetGateway",
+   "Properties": {
+    "Tags": [
+     {
+      "Key": "Name",
+      "Value": "SpatialEcsTasksStack/SpatialVpc"
+     }
+    ]
+   },
+   "Metadata": {
+    "aws:cdk:path": "SpatialEcsTasksStack/SpatialVpc/IGW"
+   }
+  },
+  "SpatialVpcVPCGW433E7BB9": {
+   "Type": "AWS::EC2::VPCGatewayAttachment",
+   "Properties": {
+    "InternetGatewayId": {
+     "Ref": "SpatialVpcIGW9D08D19B"
+    },
+    "VpcId": {
+     "Ref": "SpatialVpc8D47CAA8"
+    }
+   },
+   "Metadata": {
+    "aws:cdk:path": "SpatialEcsTasksStack/SpatialVpc/VPCGW"
+   }
+  },
+  "TasksSecurityGroupD52CD2E7": {
+   "Type": "AWS::EC2::SecurityGroup",
+   "Properties": {
+    "GroupDescription": "Security group for ECS worker tasks",
+    "SecurityGroupEgress": [
+     {
+      "CidrIp": "0.0.0.0/0",
+      "Description": "Allow all outbound traffic by default",
+      "IpProtocol": "-1"
+     }
+    ],
+    "VpcId": {
+     "Ref": "SpatialVpc8D47CAA8"
+    }
+   },
+   "Metadata": {
+    "aws:cdk:path": "SpatialEcsTasksStack/TasksSecurityGroup/Resource"
+   }
+  },
+  "SpatialCluster03AB29BD": {
+   "Type": "AWS::ECS::Cluster",
+   "Properties": {
+    "ClusterName": "spatial-cluster",
+    "ClusterSettings": [
+     {
+      "Name": "containerInsights",
+      "Value": "disabled"
+     }
+    ]
+   },
+   "Metadata": {
+    "aws:cdk:path": "SpatialEcsTasksStack/SpatialCluster/Resource"
+   }
+  },
+  "SpatialCluster1019C8FF": {
+   "Type": "AWS::ECS::ClusterCapacityProviderAssociations",
+   "Properties": {
+    "CapacityProviders": [
+     "FARGATE",
+     "FARGATE_SPOT"
+    ],
+    "Cluster": {
+     "Ref": "SpatialCluster03AB29BD"
+    },
+    "DefaultCapacityProviderStrategy": []
+   },
+   "Metadata": {
+    "aws:cdk:path": "SpatialEcsTasksStack/SpatialCluster/SpatialCluster"
+   }
+  },
+  "SpatialSecretsA8EC01B8": {
+   "Type": "AWS::SecretsManager::Secret",
+   "Properties": {
+    "Description": "Secrets for spatial data pipeline",
+    "Name": "spatial/secrets",
+    "SecretString": "{\"MOTHERDUCK_ACCESS_TOKEN\":\"PLACEHOLDER_REPLACE_ME\",\"DATABASE_NAME\":\"spatial_dagster\"}"
+   },
+   "UpdateReplacePolicy": "Delete",
+   "DeletionPolicy": "Delete",
+   "Metadata": {
+    "aws:cdk:path": "SpatialEcsTasksStack/SpatialSecrets/Resource"
+   }
+  },
+  "TaskExecutionRole250D2532": {
+   "Type": "AWS::IAM::Role",
+   "Properties": {
+    "AssumeRolePolicyDocument": {
+     "Statement": [
+      {
+       "Action": "sts:AssumeRole",
+       "Effect": "Allow",
+       "Principal": {
+        "Service": "ecs-tasks.amazonaws.com"
+       }
+      }
+     ],
+     "Version": "2012-10-17"
+    },
+    "ManagedPolicyArns": [
+     {
+      "Fn::Join": [
+       "",
+       [
+        "arn:",
+        {
+         "Ref": "AWS::Partition"
+        },
+        ":iam::aws:policy/service-role/AmazonECSTaskExecutionRolePolicy"
+       ]
+      ]
+     }
+    ]
+   },
+   "Metadata": {
+    "aws:cdk:path": "SpatialEcsTasksStack/TaskExecutionRole/Resource"
+   }
+  },
+  "TaskExecutionRoleDefaultPolicyA84DD1B0": {
+   "Type": "AWS::IAM::Policy",
+   "Properties": {
+    "PolicyDocument": {
+     "Statement": [
+      {
+       "Action": [
+        "secretsmanager:GetSecretValue",
+        "secretsmanager:DescribeSecret"
+       ],
+       "Effect": "Allow",
+       "Resource": {
+        "Ref": "SpatialSecretsA8EC01B8"
+       }
+      },
+      {
+       "Action": [
+        "ecr:BatchCheckLayerAvailability",
+        "ecr:GetDownloadUrlForLayer",
+        "ecr:BatchGetImage"
+       ],
+       "Effect": "Allow",
+       "Resource": {
+        "Fn::ImportValue": "SpatialEcrStack:ExportsOutputFnGetAttIngestionRepoDB552C94ArnD5B926B2"
+       }
+      },
+      {
+       "Action": "ecr:GetAuthorizationToken",
+       "Effect": "Allow",
+       "Resource": "*"
+      },
+      {
+       "Action": [
+        "logs:CreateLogStream",
+        "logs:PutLogEvents"
+       ],
+       "Effect": "Allow",
+       "Resource": {
+        "Fn::GetAtt": [
+         "TasksLogGroup58372823",
+         "Arn"
+        ]
+       }
+      },
+      {
+       "Action": [
+        "ecr:BatchCheckLayerAvailability",
+        "ecr:GetDownloadUrlForLayer",
+        "ecr:BatchGetImage"
+       ],
+       "Effect": "Allow",
+       "Resource": {
+        "Fn::ImportValue": "SpatialEcrStack:ExportsOutputFnGetAttTransformationsDbtRepoAA3DFE61ArnBD9E7965"
+       }
+      }
+     ],
+     "Version": "2012-10-17"
+    },
+    "PolicyName": "TaskExecutionRoleDefaultPolicyA84DD1B0",
+    "Roles": [
+     {
+      "Ref": "TaskExecutionRole250D2532"
+     }
+    ]
+   },
+   "Metadata": {
+    "aws:cdk:path": "SpatialEcsTasksStack/TaskExecutionRole/DefaultPolicy/Resource"
+   }
+  },
+  "TaskRole30FC0FBB": {
+   "Type": "AWS::IAM::Role",
+   "Properties": {
+    "AssumeRolePolicyDocument": {
+     "Statement": [
+      {
+       "Action": "sts:AssumeRole",
+       "Effect": "Allow",
+       "Principal": {
+        "Service": "ecs-tasks.amazonaws.com"
+       }
+      }
+     ],
+     "Version": "2012-10-17"
+    }
+   },
+   "Metadata": {
+    "aws:cdk:path": "SpatialEcsTasksStack/TaskRole/Resource"
+   }
+  },
+  "TaskRoleDefaultPolicy07FC53DE": {
+   "Type": "AWS::IAM::Policy",
+   "Properties": {
+    "PolicyDocument": {
+     "Statement": [
+      {
+       "Action": [
+        "secretsmanager:GetSecretValue",
+        "secretsmanager:DescribeSecret"
+       ],
+       "Effect": "Allow",
+       "Resource": {
+        "Ref": "SpatialSecretsA8EC01B8"
+       }
+      }
+     ],
+     "Version": "2012-10-17"
+    },
+    "PolicyName": "TaskRoleDefaultPolicy07FC53DE",
+    "Roles": [
+     {
+      "Ref": "TaskRole30FC0FBB"
+     }
+    ]
+   },
+   "Metadata": {
+    "aws:cdk:path": "SpatialEcsTasksStack/TaskRole/DefaultPolicy/Resource"
+   }
+  },
+  "TasksLogGroup58372823": {
+   "Type": "AWS::Logs::LogGroup",
+   "Properties": {
+    "LogGroupName": "/ecs/spatial-tasks",
+    "RetentionInDays": 7
+   },
+   "UpdateReplacePolicy": "Delete",
+   "DeletionPolicy": "Delete",
+   "Metadata": {
+    "aws:cdk:path": "SpatialEcsTasksStack/TasksLogGroup/Resource"
+   }
+  },
+  "IngestionTaskDef0CBA300A": {
+   "Type": "AWS::ECS::TaskDefinition",
+   "Properties": {
+    "ContainerDefinitions": [
+     {
+      "Essential": true,
+      "Image": {
+       "Fn::Join": [
+        "",
+        [
+         {
+          "Fn::Select": [
+           4,
+           {
+            "Fn::Split": [
+             ":",
+             {
+              "Fn::ImportValue": "SpatialEcrStack:ExportsOutputFnGetAttIngestionRepoDB552C94ArnD5B926B2"
+             }
+            ]
+           }
+          ]
+         },
+         ".dkr.ecr.",
+         {
+          "Fn::Select": [
+           3,
+           {
+            "Fn::Split": [
+             ":",
+             {
+              "Fn::ImportValue": "SpatialEcrStack:ExportsOutputFnGetAttIngestionRepoDB552C94ArnD5B926B2"
+             }
+            ]
+           }
+          ]
+         },
+         ".",
+         {
+          "Ref": "AWS::URLSuffix"
+         },
+         "/",
+         {
+          "Fn::ImportValue": "SpatialEcrStack:ExportsOutputRefIngestionRepoDB552C9484E75770"
+         },
+         ":latest"
+        ]
+       ]
+      },
+      "LogConfiguration": {
+       "LogDriver": "awslogs",
+       "Options": {
+        "awslogs-group": {
+         "Ref": "TasksLogGroup58372823"
+        },
+        "awslogs-stream-prefix": "ingestion",
+        "awslogs-region": "us-east-1"
+       }
+      },
+      "Name": "container",
+      "Secrets": [
+       {
+        "Name": "MOTHERDUCK_ACCESS_TOKEN",
+        "ValueFrom": {
+         "Fn::Join": [
+          "",
+          [
+           {
+            "Ref": "SpatialSecretsA8EC01B8"
+           },
+           ":MOTHERDUCK_ACCESS_TOKEN::"
+          ]
+         ]
+        }
+       },
+       {
+        "Name": "DATABASE_NAME",
+        "ValueFrom": {
+         "Fn::Join": [
+          "",
+          [
+           {
+            "Ref": "SpatialSecretsA8EC01B8"
+           },
+           ":DATABASE_NAME::"
+          ]
+         ]
+        }
+       }
+      ]
+     }
+    ],
+    "Cpu": "512",
+    "ExecutionRoleArn": {
+     "Fn::GetAtt": [
+      "TaskExecutionRole250D2532",
+      "Arn"
+     ]
+    },
+    "Family": "spatial-ingestion",
+    "Memory": "2048",
+    "NetworkMode": "awsvpc",
+    "RequiresCompatibilities": [
+     "FARGATE"
+    ],
+    "RuntimePlatform": {
+     "CpuArchitecture": "X86_64",
+     "OperatingSystemFamily": "LINUX"
+    },
+    "TaskRoleArn": {
+     "Fn::GetAtt": [
+      "TaskRole30FC0FBB",
+      "Arn"
+     ]
+    }
+   },
+   "Metadata": {
+    "aws:cdk:path": "SpatialEcsTasksStack/IngestionTaskDef/Resource"
+   }
+  },
+  "TransformationsDbtTaskDefC9EC8EF4": {
+   "Type": "AWS::ECS::TaskDefinition",
+   "Properties": {
+    "ContainerDefinitions": [
+     {
+      "Essential": true,
+      "Image": {
+       "Fn::Join": [
+        "",
+        [
+         {
+          "Fn::Select": [
+           4,
+           {
+            "Fn::Split": [
+             ":",
+             {
+              "Fn::ImportValue": "SpatialEcrStack:ExportsOutputFnGetAttTransformationsDbtRepoAA3DFE61ArnBD9E7965"
+             }
+            ]
+           }
+          ]
+         },
+         ".dkr.ecr.",
+         {
+          "Fn::Select": [
+           3,
+           {
+            "Fn::Split": [
+             ":",
+             {
+              "Fn::ImportValue": "SpatialEcrStack:ExportsOutputFnGetAttTransformationsDbtRepoAA3DFE61ArnBD9E7965"
+             }
+            ]
+           }
+          ]
+         },
+         ".",
+         {
+          "Ref": "AWS::URLSuffix"
+         },
+         "/",
+         {
+          "Fn::ImportValue": "SpatialEcrStack:ExportsOutputRefTransformationsDbtRepoAA3DFE61D30F99E2"
+         },
+         ":latest"
+        ]
+       ]
+      },
+      "LogConfiguration": {
+       "LogDriver": "awslogs",
+       "Options": {
+        "awslogs-group": {
+         "Ref": "TasksLogGroup58372823"
+        },
+        "awslogs-stream-prefix": "transformations-dbt",
+        "awslogs-region": "us-east-1"
+       }
+      },
+      "Name": "container",
+      "Secrets": [
+       {
+        "Name": "MOTHERDUCK_ACCESS_TOKEN",
+        "ValueFrom": {
+         "Fn::Join": [
+          "",
+          [
+           {
+            "Ref": "SpatialSecretsA8EC01B8"
+           },
+           ":MOTHERDUCK_ACCESS_TOKEN::"
+          ]
+         ]
+        }
+       },
+       {
+        "Name": "DATABASE_NAME",
+        "ValueFrom": {
+         "Fn::Join": [
+          "",
+          [
+           {
+            "Ref": "SpatialSecretsA8EC01B8"
+           },
+           ":DATABASE_NAME::"
+          ]
+         ]
+        }
+       }
+      ]
+     }
+    ],
+    "Cpu": "512",
+    "ExecutionRoleArn": {
+     "Fn::GetAtt": [
+      "TaskExecutionRole250D2532",
+      "Arn"
+     ]
+    },
+    "Family": "spatial-transformations-dbt",
+    "Memory": "2048",
+    "NetworkMode": "awsvpc",
+    "RequiresCompatibilities": [
+     "FARGATE"
+    ],
+    "RuntimePlatform": {
+     "CpuArchitecture": "X86_64",
+     "OperatingSystemFamily": "LINUX"
+    },
+    "TaskRoleArn": {
+     "Fn::GetAtt": [
+      "TaskRole30FC0FBB",
+      "Arn"
+     ]
+    }
+   },
+   "Metadata": {
+    "aws:cdk:path": "SpatialEcsTasksStack/TransformationsDbtTaskDef/Resource"
+   }
+  },
+  "CDKMetadata": {
+   "Type": "AWS::CDK::Metadata",
+   "Properties": {
+    "Analytics": "v2:deflate64:H4sIAAAAAAAA/2WQ3W7CMAxGn4X7kEF5AtRpaNKkVe3E7eQG0xnapIodEIry7lPLT9F25eOTRP6cTGerpV7M4MxzszvOW6p1rATMUcGZvyOaTMdtb1S+t9siV0WoWzJVqC3K4CYqXRD8grrFyU9uzewMgZCzj8sDvFtBb1E2IHiGy23MrVuLgPnp0Iqq0ARPctl4F/pxwLNICg3rmLeBBf1w/B9z6MGQXArvTrRD/5SI1Rv4BoaofHzFPVm6B/1rnBUgi35ySTEaj8IdWGjQ61iN/S2kR0mKoNOxdNevGWvhWjLjuldKqnUN6/jhmseKd05JlcgueDO+/wzSB0nKuh3qA7+csoVervRydmCiuQ9WqENdXusvTzzHQOABAAA="
+   },
+   "Metadata": {
+    "aws:cdk:path": "SpatialEcsTasksStack/CDKMetadata/Default"
+   }
+  }
+ },
+ "Outputs": {
+  "ClusterName": {
+   "Description": "ECS cluster name",
+   "Value": {
+    "Ref": "SpatialCluster03AB29BD"
+   }
+  },
+  "ClusterArn": {
+   "Description": "ECS cluster ARN",
+   "Value": {
+    "Fn::GetAtt": [
+     "SpatialCluster03AB29BD",
+     "Arn"
+    ]
+   }
+  },
+  "IngestionTaskDefArn": {
+   "Description": "Ingestion task definition ARN",
+   "Value": {
+    "Ref": "IngestionTaskDef0CBA300A"
+   }
+  },
+  "TransformationsDbtTaskDefArn": {
+   "Description": "Transformations DBT task definition ARN",
+   "Value": {
+    "Ref": "TransformationsDbtTaskDefC9EC8EF4"
+   }
+  },
+  "VpcId": {
+   "Description": "VPC ID",
+   "Value": {
+    "Ref": "SpatialVpc8D47CAA8"
+   }
+  },
+  "PublicSubnets": {
+   "Description": "Public subnet IDs (comma-separated)",
+   "Value": {
+    "Fn::Join": [
+     "",
+     [
+      {
+       "Ref": "SpatialVpcpublicSubnet1Subnet6DBC2CD0"
+      },
+      ",",
+      {
+       "Ref": "SpatialVpcpublicSubnet2Subnet97374BD1"
+      }
+     ]
+    ]
+   }
+  },
+  "SecurityGroupId": {
+   "Description": "Security group ID for ECS tasks",
+   "Value": {
+    "Fn::GetAtt": [
+     "TasksSecurityGroupD52CD2E7",
+     "GroupId"
+    ]
+   }
+  },
+  "SecretsArn": {
+   "Description": "Secrets Manager ARN",
+   "Value": {
+    "Ref": "SpatialSecretsA8EC01B8"
+   }
+  },
+  "ExportsOutputRefIngestionTaskDef0CBA300A4A546BD8": {
+   "Value": {
+    "Ref": "IngestionTaskDef0CBA300A"
+   },
+   "Export": {
+    "Name": "SpatialEcsTasksStack:ExportsOutputRefIngestionTaskDef0CBA300A4A546BD8"
+   }
+  },
+  "ExportsOutputRefTransformationsDbtTaskDefC9EC8EF465B38812": {
+   "Value": {
+    "Ref": "TransformationsDbtTaskDefC9EC8EF4"
+   },
+   "Export": {
+    "Name": "SpatialEcsTasksStack:ExportsOutputRefTransformationsDbtTaskDefC9EC8EF465B38812"
+   }
+  },
+  "ExportsOutputRefSpatialCluster03AB29BD176BCA81": {
+   "Value": {
+    "Ref": "SpatialCluster03AB29BD"
+   },
+   "Export": {
+    "Name": "SpatialEcsTasksStack:ExportsOutputRefSpatialCluster03AB29BD176BCA81"
+   }
+  },
+  "ExportsOutputFnGetAttTaskExecutionRole250D2532Arn61CC7A98": {
+   "Value": {
+    "Fn::GetAtt": [
+     "TaskExecutionRole250D2532",
+     "Arn"
+    ]
+   },
+   "Export": {
+    "Name": "SpatialEcsTasksStack:ExportsOutputFnGetAttTaskExecutionRole250D2532Arn61CC7A98"
+   }
+  },
+  "ExportsOutputFnGetAttTaskRole30FC0FBBArn85EA3C60": {
+   "Value": {
+    "Fn::GetAtt": [
+     "TaskRole30FC0FBB",
+     "Arn"
+    ]
+   },
+   "Export": {
+    "Name": "SpatialEcsTasksStack:ExportsOutputFnGetAttTaskRole30FC0FBBArn85EA3C60"
+   }
+  },
+  "ExportsOutputRefSpatialVpcpublicSubnet1Subnet6DBC2CD023542E16": {
+   "Value": {
+    "Ref": "SpatialVpcpublicSubnet1Subnet6DBC2CD0"
+   },
+   "Export": {
+    "Name": "SpatialEcsTasksStack:ExportsOutputRefSpatialVpcpublicSubnet1Subnet6DBC2CD023542E16"
+   }
+  },
+  "ExportsOutputRefSpatialVpcpublicSubnet2Subnet97374BD1B6F660ED": {
+   "Value": {
+    "Ref": "SpatialVpcpublicSubnet2Subnet97374BD1"
+   },
+   "Export": {
+    "Name": "SpatialEcsTasksStack:ExportsOutputRefSpatialVpcpublicSubnet2Subnet97374BD1B6F660ED"
+   }
+  }
+ },
+ "Parameters": {
+  "BootstrapVersion": {
+   "Type": "AWS::SSM::Parameter::Value<String>",
+   "Default": "/cdk-bootstrap/hnb659fds/version",
+   "Description": "Version of the CDK Bootstrap resources in this environment, automatically retrieved from SSM Parameter Store. [cdk:skip]"
+  }
+ },
+ "Rules": {
+  "CheckBootstrapVersion": {
+   "Assertions": [
+    {
+     "Assert": {
+      "Fn::Not": [
+       {
+        "Fn::Contains": [
+         [
+          "1",
+          "2",
+          "3",
+          "4",
+          "5"
+         ],
+         {
+          "Ref": "BootstrapVersion"
+         }
+        ]
+       }
+      ]
+     },
+     "AssertDescription": "CDK bootstrap stack version 6 required. Please run 'cdk bootstrap' with a recent version of the CDK CLI."
+    }
+   ]
+  }
+ }
+}

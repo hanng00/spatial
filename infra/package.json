@@ -1,0 +1,31 @@
+{
+  "name": "spatial-infra",
+  "version": "0.1.0",
+  "bin": {
+    "infra": "bin/infra.js"
+  },
+  "scripts": {
+    "build": "tsc",
+    "watch": "tsc -w",
+    "cdk": "bunx cdk",
+    "deploy": "bunx cdk deploy --all --require-approval never",
+    "deploy:ecr": "bunx cdk deploy SpatialEcrStack --require-approval never",
+    "deploy:dsql": "bunx cdk deploy SpatialDsqlStack --require-approval never",
+    "deploy:ecs": "bunx cdk deploy SpatialEcsTasksStack --require-approval never",
+    "deploy:dagster": "bunx cdk deploy SpatialDagsterStack --require-approval never",
+    "synth": "bunx cdk synth",
+    "diff": "bunx cdk diff",
+    "list": "bunx cdk list"
+  },
+  "devDependencies": {
+    "@types/node": "^20.10.0",
+    "aws-cdk": "^2.170.0",
+    "typescript": "~5.6.0"
+  },
+  "dependencies": {
+    "aws-cdk-lib": "^2.170.0",
+    "constructs": "^10.4.0",
+    "@aws-cdk/aws-apprunner-alpha": "^2.170.0-alpha.0"
+  }
+}
+

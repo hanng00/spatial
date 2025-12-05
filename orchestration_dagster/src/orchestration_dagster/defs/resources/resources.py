@@ -20,12 +20,24 @@ def get_container_executor() -> ContainerExecutor:
         environment = "production"
     
     if environment == "production":
+        # Parse task definitions mapping from environment
+        # Format: "ingestion=arn:...,transformations_dbt=arn:..."
+        task_definitions = {}
+        task_defs_str = os.environ.get("ECS_TASK_DEFINITIONS", "")
+        if task_defs_str:
+            for pair in task_defs_str.split(","):
+                if "=" in pair:
+                    key, value = pair.split("=", 1)
+                    task_definitions[key.strip()] = value.strip()
+        
         return ContainerExecutor(
             environment="production",
             ecs_cluster=os.environ.get("ECS_CLUSTER", ""),
-            ecs_task_definition=os.environ.get("ECS_TASK_DEFINITION", ""),
+            ecs_task_definition=os.environ.get("ECS_TASK_DEFINITION", ""),  # Legacy fallback
+            ecs_task_definitions=task_definitions if task_definitions else None,
             ecs_subnets=os.environ.get("ECS_SUBNETS", "").split(",") if os.environ.get("ECS_SUBNETS") else [],
             ecs_security_groups=os.environ.get("ECS_SECURITY_GROUPS", "").split(",") if os.environ.get("ECS_SECURITY_GROUPS") else [],
+            use_fargate_spot=os.environ.get("USE_FARGATE_SPOT", "true").lower() == "true",
         )
     else:
         return ContainerExecutor(

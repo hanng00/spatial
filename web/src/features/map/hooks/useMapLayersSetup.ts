@@ -6,10 +6,12 @@
 
 'use client'
 
+import {
+  documentGeographyLayerDefinition,
+  type DocumentGeographyLayerConfig,
+} from '@/features/datalayers/documentGeography'
 import { useEffect } from 'react'
 import { useLayerRegistryStore } from '../stores/layerRegistryStore'
-import { documentGeographyLayerDefinition } from '../layers/documentGeography/DocumentGeographyLayer'
-import type { DocumentGeographyLayerConfig } from '../layers/documentGeography/DocumentGeographyLayer'
 
 interface UseMapLayersSetupOptions {
   /** Initial configuration for document geography layer */

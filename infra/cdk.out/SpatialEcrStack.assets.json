@@ -1,0 +1,21 @@
+{
+  "version": "48.0.0",
+  "files": {
+    "73fea3bdbc527cd32c5a0b9560a5ceee7461515d4bb09d665dd0b78b8b0bf609": {
+      "displayName": "SpatialEcrStack Template",
+      "source": {
+        "path": "SpatialEcrStack.template.json",
+        "packaging": "file"
+      },
+      "destinations": {
+        "current_account-us-east-1-8787aa7e": {
+          "bucketName": "cdk-hnb659fds-assets-${AWS::AccountId}-us-east-1",
+          "objectKey": "73fea3bdbc527cd32c5a0b9560a5ceee7461515d4bb09d665dd0b78b8b0bf609.json",
+          "region": "us-east-1",
+          "assumeRoleArn": "arn:${AWS::Partition}:iam::${AWS::AccountId}:role/cdk-hnb659fds-file-publishing-role-${AWS::AccountId}-us-east-1"
+        }
+      }
+    }
+  },
+  "dockerImages": {}
+}

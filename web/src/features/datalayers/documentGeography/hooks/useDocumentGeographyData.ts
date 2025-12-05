@@ -7,7 +7,7 @@
 "use client";
 
 import { useQuery } from "@tanstack/react-query";
-import { fetchDocumentGeography } from "../../lib/documentGeographyApi";
+import { fetchDocumentGeography } from "../lib/documentGeographyApi";
 import type { DocumentGeographyPoint } from "../adapters/documentGeographyAdapter";
 import { documentGeographyQueryAdapter } from "../adapters/documentGeographyAdapter";
 

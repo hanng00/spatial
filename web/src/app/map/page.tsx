@@ -1,16 +1,12 @@
 "use client";
 
+import { DistrictMotionsSheet } from "@/features/datalayers/documentGeography";
 import { MapControlsPanel } from "@/features/map/components/MapControlsPanel";
 import { MapHeader } from "@/features/map/components/MapHeader";
 import dynamic from "next/dynamic";
 import { useState } from "react";
 
-type ClientMapProps = {
-  selectedYear: number;
-  selectedMonth: number | undefined;
-};
-
-const ClientMap = dynamic<ClientMapProps>(
+const ClientMap = dynamic(
   () =>
     import("@/features/map/components/ClientMap").then((mod) => ({
       default: mod.ClientMap,
@@ -34,6 +30,9 @@ export default function MapPage() {
       {showControls && (
         <MapControlsPanel onClose={() => setShowControls(false)} />
       )}
+
+      {/* District motions sheet - controlled by datalayer store */}
+      <DistrictMotionsSheet />
     </div>
   );
 }

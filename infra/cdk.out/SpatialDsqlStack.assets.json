@@ -1,0 +1,21 @@
+{
+  "version": "48.0.0",
+  "files": {
+    "28856727aa7a8bed4a0d66bc9a31d115a371f96de7ffe69137f94d2fdc43cdbe": {
+      "displayName": "SpatialDsqlStack Template",
+      "source": {
+        "path": "SpatialDsqlStack.template.json",
+        "packaging": "file"
+      },
+      "destinations": {
+        "current_account-us-east-1-ecd65d47": {
+          "bucketName": "cdk-hnb659fds-assets-${AWS::AccountId}-us-east-1",
+          "objectKey": "28856727aa7a8bed4a0d66bc9a31d115a371f96de7ffe69137f94d2fdc43cdbe.json",
+          "region": "us-east-1",
+          "assumeRoleArn": "arn:${AWS::Partition}:iam::${AWS::AccountId}:role/cdk-hnb659fds-file-publishing-role-${AWS::AccountId}-us-east-1"
+        }
+      }
+    }
+  },
+  "dockerImages": {}
+}

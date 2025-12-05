@@ -1,21 +1,32 @@
 "use client";
 
+import {
+  useDocumentGeographyData,
+  useDistrictStore,
+  type DocumentGeographyPoint,
+} from "@/features/datalayers/documentGeography";
 import { BaseMapLayer } from "@/features/map/components/BaseMapLayer";
 import { LayerComposer } from "@/features/map/components/LayerComposer";
-import { useDocumentGeographyData } from "@/features/map/data/providers/useDocumentGeographyData";
 import { useMapLayersSetup } from "@/features/map/hooks/useMapLayersSetup";
 import type { LayerClickEvent } from "@/features/map/layers/base/types";
-import { useMemo } from "react";
+import { useCallback, useMemo } from "react";
 import { useMapStore } from "../stores/mapStore";
 
 export const ClientMap = () => {
   // Initialize layer registry
   useMapLayersSetup();
 
-  // Get filter config from store
+  // Get filter config from map store
   const dataLayerConfig = useMapStore((state) => state.dataLayerConfig);
   const selectedYear = dataLayerConfig.timefilter.startDate?.getFullYear();
-  const selectedMonth = dataLayerConfig.timefilter.startDate?.getMonth();
+  // Convert month from 0-11 (JavaScript) to 1-12 (API format)
+  // Only include month if endDate exists (indicating a month filter is active)
+  const selectedMonth = dataLayerConfig.timefilter.endDate && dataLayerConfig.timefilter.startDate
+    ? dataLayerConfig.timefilter.startDate.getMonth() + 1
+    : undefined;
+
+  // Get district actions from datalayer store
+  const openDistrictSheet = useDistrictStore((state) => state.openDistrictSheet);
 
   // Fetch data using TanStack Query via data provider
   const { data: geographyData } = useDocumentGeographyData({
@@ -30,11 +41,16 @@ export const ClientMap = () => {
     return map;
   }, [geographyData]);
 
-  // Handle layer interactions
-  const handleLayerClick = (event: LayerClickEvent) => {
-    console.log("Layer clicked:", event.layerId, event.object);
-    // TODO: Show district details in info panel
-  };
+  // Handle layer interactions - open sheet with motions for clicked district
+  const handleLayerClick = useCallback(
+    (event: LayerClickEvent) => {
+      if (event.layerId === "document-geography-layer" && event.object) {
+        const district = event.object as DocumentGeographyPoint;
+        openDistrictSheet(district);
+      }
+    },
+    [openDistrictSheet]
+  );
 
   return (
     <LayerComposer dataMap={dataMap} onLayerClick={handleLayerClick}>

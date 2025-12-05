@@ -1,0 +1,522 @@
+{
+ "Description": "App Runner service for Dagster UI with basic auth",
+ "Resources": {
+  "DagsterSecrets980EA1FD": {
+   "Type": "AWS::SecretsManager::Secret",
+   "Properties": {
+    "Description": "Secrets for Dagster UI",
+    "Name": "spatial/dagster-secrets",
+    "SecretString": "{\"BASIC_AUTH_USERNAME\":\"admin\",\"BASIC_AUTH_PASSWORD\":\"CHANGE_ME_SECURE_PASSWORD\",\"MOTHERDUCK_ACCESS_TOKEN\":\"PLACEHOLDER_REPLACE_ME\",\"DATABASE_NAME\":\"spatial_dagster\"}"
+   },
+   "UpdateReplacePolicy": "Delete",
+   "DeletionPolicy": "Delete",
+   "Metadata": {
+    "aws:cdk:path": "SpatialDagsterStack/DagsterSecrets/Resource"
+   }
+  },
+  "AppRunnerAccessRoleC89E5843": {
+   "Type": "AWS::IAM::Role",
+   "Properties": {
+    "AssumeRolePolicyDocument": {
+     "Statement": [
+      {
+       "Action": "sts:AssumeRole",
+       "Effect": "Allow",
+       "Principal": {
+        "Service": "build.apprunner.amazonaws.com"
+       }
+      }
+     ],
+     "Version": "2012-10-17"
+    }
+   },
+   "Metadata": {
+    "aws:cdk:path": "SpatialDagsterStack/AppRunnerAccessRole/Resource"
+   }
+  },
+  "AppRunnerAccessRoleDefaultPolicy4FF2CFAF": {
+   "Type": "AWS::IAM::Policy",
+   "Properties": {
+    "PolicyDocument": {
+     "Statement": [
+      {
+       "Action": [
+        "ecr:BatchCheckLayerAvailability",
+        "ecr:GetDownloadUrlForLayer",
+        "ecr:BatchGetImage"
+       ],
+       "Effect": "Allow",
+       "Resource": {
+        "Fn::ImportValue": "SpatialEcrStack:ExportsOutputFnGetAttDagsterRepo9E601850ArnF772716F"
+       }
+      },
+      {
+       "Action": "ecr:GetAuthorizationToken",
+       "Effect": "Allow",
+       "Resource": "*"
+      }
+     ],
+     "Version": "2012-10-17"
+    },
+    "PolicyName": "AppRunnerAccessRoleDefaultPolicy4FF2CFAF",
+    "Roles": [
+     {
+      "Ref": "AppRunnerAccessRoleC89E5843"
+     }
+    ]
+   },
+   "Metadata": {
+    "aws:cdk:path": "SpatialDagsterStack/AppRunnerAccessRole/DefaultPolicy/Resource"
+   }
+  },
+  "AppRunnerInstanceRole96A5A063": {
+   "Type": "AWS::IAM::Role",
+   "Properties": {
+    "AssumeRolePolicyDocument": {
+     "Statement": [
+      {
+       "Action": "sts:AssumeRole",
+       "Effect": "Allow",
+       "Principal": {
+        "Service": "tasks.apprunner.amazonaws.com"
+       }
+      }
+     ],
+     "Version": "2012-10-17"
+    }
+   },
+   "Metadata": {
+    "aws:cdk:path": "SpatialDagsterStack/AppRunnerInstanceRole/Resource"
+   }
+  },
+  "AppRunnerInstanceRoleDefaultPolicy35195718": {
+   "Type": "AWS::IAM::Policy",
+   "Properties": {
+    "PolicyDocument": {
+     "Statement": [
+      {
+       "Action": [
+        "secretsmanager:GetSecretValue",
+        "secretsmanager:DescribeSecret"
+       ],
+       "Effect": "Allow",
+       "Resource": {
+        "Ref": "DagsterSecrets980EA1FD"
+       }
+      },
+      {
+       "Action": [
+        "ecs:RunTask",
+        "ecs:DescribeTasks",
+        "ecs:StopTask"
+       ],
+       "Effect": "Allow",
+       "Resource": [
+        {
+         "Fn::ImportValue": "SpatialEcsTasksStack:ExportsOutputRefIngestionTaskDef0CBA300A4A546BD8"
+        },
+        {
+         "Fn::ImportValue": "SpatialEcsTasksStack:ExportsOutputRefTransformationsDbtTaskDefC9EC8EF465B38812"
+        },
+        {
+         "Fn::Join": [
+          "",
+          [
+           "arn:aws:ecs:us-east-1:",
+           {
+            "Ref": "AWS::AccountId"
+           },
+           ":task/",
+           {
+            "Fn::ImportValue": "SpatialEcsTasksStack:ExportsOutputRefSpatialCluster03AB29BD176BCA81"
+           },
+           "/*"
+          ]
+         ]
+        }
+       ]
+      },
+      {
+       "Action": "iam:PassRole",
+       "Effect": "Allow",
+       "Resource": [
+        {
+         "Fn::ImportValue": "SpatialEcsTasksStack:ExportsOutputFnGetAttTaskExecutionRole250D2532Arn61CC7A98"
+        },
+        {
+         "Fn::ImportValue": "SpatialEcsTasksStack:ExportsOutputFnGetAttTaskRole30FC0FBBArn85EA3C60"
+        }
+       ]
+      },
+      {
+       "Action": [
+        "dsql:DbConnect",
+        "dsql:DbConnectAdmin"
+       ],
+       "Effect": "Allow",
+       "Resource": {
+        "Fn::ImportValue": "SpatialDsqlStack:ExportsOutputFnGetAttDsqlClusterArnC66D17AD"
+       }
+      },
+      {
+       "Action": [
+        "logs:GetLogEvents",
+        "logs:FilterLogEvents"
+       ],
+       "Effect": "Allow",
+       "Resource": "*"
+      }
+     ],
+     "Version": "2012-10-17"
+    },
+    "PolicyName": "AppRunnerInstanceRoleDefaultPolicy35195718",
+    "Roles": [
+     {
+      "Ref": "AppRunnerInstanceRole96A5A063"
+     }
+    ]
+   },
+   "Metadata": {
+    "aws:cdk:path": "SpatialDagsterStack/AppRunnerInstanceRole/DefaultPolicy/Resource"
+   }
+  },
+  "DagsterAutoScaling": {
+   "Type": "AWS::AppRunner::AutoScalingConfiguration",
+   "Properties": {
+    "AutoScalingConfigurationName": "spatial-dagster-autoscaling",
+    "MaxConcurrency": 100,
+    "MaxSize": 1,
+    "MinSize": 0
+   },
+   "Metadata": {
+    "aws:cdk:path": "SpatialDagsterStack/DagsterAutoScaling"
+   }
+  },
+  "DagsterService": {
+   "Type": "AWS::AppRunner::Service",
+   "Properties": {
+    "AutoScalingConfigurationArn": {
+     "Fn::GetAtt": [
+      "DagsterAutoScaling",
+      "AutoScalingConfigurationArn"
+     ]
+    },
+    "HealthCheckConfiguration": {
+     "HealthyThreshold": 1,
+     "Interval": 20,
+     "Path": "/health",
+     "Protocol": "HTTP",
+     "Timeout": 10,
+     "UnhealthyThreshold": 5
+    },
+    "InstanceConfiguration": {
+     "Cpu": "1024",
+     "InstanceRoleArn": {
+      "Fn::GetAtt": [
+       "AppRunnerInstanceRole96A5A063",
+       "Arn"
+      ]
+     },
+     "Memory": "2048"
+    },
+    "ServiceName": "spatial-dagster",
+    "SourceConfiguration": {
+     "AuthenticationConfiguration": {
+      "AccessRoleArn": {
+       "Fn::GetAtt": [
+        "AppRunnerAccessRoleC89E5843",
+        "Arn"
+       ]
+      }
+     },
+     "AutoDeploymentsEnabled": true,
+     "ImageRepository": {
+      "ImageConfiguration": {
+       "Port": "8080",
+       "RuntimeEnvironmentSecrets": [
+        {
+         "Name": "BASIC_AUTH_USERNAME",
+         "Value": {
+          "Fn::Join": [
+           "",
+           [
+            {
+             "Ref": "DagsterSecrets980EA1FD"
+            },
+            ":BASIC_AUTH_USERNAME::"
+           ]
+          ]
+         }
+        },
+        {
+         "Name": "BASIC_AUTH_PASSWORD",
+         "Value": {
+          "Fn::Join": [
+           "",
+           [
+            {
+             "Ref": "DagsterSecrets980EA1FD"
+            },
+            ":BASIC_AUTH_PASSWORD::"
+           ]
+          ]
+         }
+        },
+        {
+         "Name": "MOTHERDUCK_ACCESS_TOKEN",
+         "Value": {
+          "Fn::Join": [
+           "",
+           [
+            {
+             "Ref": "DagsterSecrets980EA1FD"
+            },
+            ":MOTHERDUCK_ACCESS_TOKEN::"
+           ]
+          ]
+         }
+        }
+       ],
+       "RuntimeEnvironmentVariables": [
+        {
+         "Name": "DAGSTER_ENVIRONMENT",
+         "Value": "production"
+        },
+        {
+         "Name": "ECS_CLUSTER",
+         "Value": {
+          "Fn::ImportValue": "SpatialEcsTasksStack:ExportsOutputRefSpatialCluster03AB29BD176BCA81"
+         }
+        },
+        {
+         "Name": "ECS_SUBNETS",
+         "Value": {
+          "Fn::Join": [
+           "",
+           [
+            {
+             "Fn::ImportValue": "SpatialEcsTasksStack:ExportsOutputRefSpatialVpcpublicSubnet1Subnet6DBC2CD023542E16"
+            },
+            ",",
+            {
+             "Fn::ImportValue": "SpatialEcsTasksStack:ExportsOutputRefSpatialVpcpublicSubnet2Subnet97374BD1B6F660ED"
+            }
+           ]
+          ]
+         }
+        },
+        {
+         "Name": "AWS_REGION",
+         "Value": "us-east-1"
+        },
+        {
+         "Name": "USE_SECRETS_MANAGER",
+         "Value": "true"
+        },
+        {
+         "Name": "SECRETS_MANAGER_SECRET_NAME",
+         "Value": {
+          "Fn::Join": [
+           "-",
+           [
+            {
+             "Fn::Select": [
+              0,
+              {
+               "Fn::Split": [
+                "-",
+                {
+                 "Fn::Select": [
+                  6,
+                  {
+                   "Fn::Split": [
+                    ":",
+                    {
+                     "Ref": "DagsterSecrets980EA1FD"
+                    }
+                   ]
+                  }
+                 ]
+                }
+               ]
+              }
+             ]
+            },
+            {
+             "Fn::Select": [
+              1,
+              {
+               "Fn::Split": [
+                "-",
+                {
+                 "Fn::Select": [
+                  6,
+                  {
+                   "Fn::Split": [
+                    ":",
+                    {
+                     "Ref": "DagsterSecrets980EA1FD"
+                    }
+                   ]
+                  }
+                 ]
+                }
+               ]
+              }
+             ]
+            }
+           ]
+          ]
+         }
+        },
+        {
+         "Name": "DSQL_CLUSTER_ENDPOINT",
+         "Value": {
+          "Fn::ImportValue": "SpatialDsqlStack:ExportsOutputFnGetAttDsqlClusterEndpoint46EA9E2D"
+         }
+        },
+        {
+         "Name": "ECS_TASK_DEFINITIONS",
+         "Value": {
+          "Fn::Join": [
+           "",
+           [
+            "ingestion=",
+            {
+             "Fn::ImportValue": "SpatialEcsTasksStack:ExportsOutputRefIngestionTaskDef0CBA300A4A546BD8"
+            },
+            ",transformations_dbt=",
+            {
+             "Fn::ImportValue": "SpatialEcsTasksStack:ExportsOutputRefTransformationsDbtTaskDefC9EC8EF465B38812"
+            }
+           ]
+          ]
+         }
+        },
+        {
+         "Name": "USE_FARGATE_SPOT",
+         "Value": "true"
+        }
+       ]
+      },
+      "ImageIdentifier": {
+       "Fn::Join": [
+        "",
+        [
+         {
+          "Fn::Select": [
+           4,
+           {
+            "Fn::Split": [
+             ":",
+             {
+              "Fn::ImportValue": "SpatialEcrStack:ExportsOutputFnGetAttDagsterRepo9E601850ArnF772716F"
+             }
+            ]
+           }
+          ]
+         },
+         ".dkr.ecr.",
+         {
+          "Fn::Select": [
+           3,
+           {
+            "Fn::Split": [
+             ":",
+             {
+              "Fn::ImportValue": "SpatialEcrStack:ExportsOutputFnGetAttDagsterRepo9E601850ArnF772716F"
+             }
+            ]
+           }
+          ]
+         },
+         ".",
+         {
+          "Ref": "AWS::URLSuffix"
+         },
+         "/",
+         {
+          "Fn::ImportValue": "SpatialEcrStack:ExportsOutputRefDagsterRepo9E6018503957BF94"
+         },
+         ":latest"
+        ]
+       ]
+      },
+      "ImageRepositoryType": "ECR"
+     }
+    }
+   },
+   "Metadata": {
+    "aws:cdk:path": "SpatialDagsterStack/DagsterService"
+   }
+  },
+  "CDKMetadata": {
+   "Type": "AWS::CDK::Metadata",
+   "Properties": {
+    "Analytics": "v2:deflate64:H4sIAAAAAAAA/yWMyw2DMBAFa+FuNnwqiCggERQQbYxBC2aN/AFFlnuPwKeZ9w7TQNPWUBV4ulKOa6npC3HwKFeBp/tEp6RV3m3IOCsLcbi36CbOlgThBrE3Wl3nzbfRJH/XzJYE7rsNzFegm/gZvBkkauK5MzzRHCx6Mpyr9iCpUhK9ciZYeWdfwe/BJ8FmVLC4x9FUULdQF4sjKm1gT5uCPvMPMQg+otMAAAA="
+   },
+   "Metadata": {
+    "aws:cdk:path": "SpatialDagsterStack/CDKMetadata/Default"
+   }
+  }
+ },
+ "Outputs": {
+  "DagsterServiceUrl": {
+   "Description": "Dagster UI URL (basic auth protected)",
+   "Value": {
+    "Fn::Join": [
+     "",
+     [
+      "https://",
+      {
+       "Fn::GetAtt": [
+        "DagsterService",
+        "ServiceUrl"
+       ]
+      }
+     ]
+    ]
+   }
+  },
+  "DagsterSecretsArn": {
+   "Description": "Dagster secrets ARN - UPDATE THESE VALUES!",
+   "Value": {
+    "Ref": "DagsterSecrets980EA1FD"
+   }
+  }
+ },
+ "Parameters": {
+  "BootstrapVersion": {
+   "Type": "AWS::SSM::Parameter::Value<String>",
+   "Default": "/cdk-bootstrap/hnb659fds/version",
+   "Description": "Version of the CDK Bootstrap resources in this environment, automatically retrieved from SSM Parameter Store. [cdk:skip]"
+  }
+ },
+ "Rules": {
+  "CheckBootstrapVersion": {
+   "Assertions": [
+    {
+     "Assert": {
+      "Fn::Not": [
+       {
+        "Fn::Contains": [
+         [
+          "1",
+          "2",
+          "3",
+          "4",
+          "5"
+         ],
+         {
+          "Ref": "BootstrapVersion"
+         }
+        ]
+       }
+      ]
+     },
+     "AssertDescription": "CDK bootstrap stack version 6 required. Please run 'cdk bootstrap' with a recent version of the CDK CLI."
+    }
+   ]
+  }
+ }
+}

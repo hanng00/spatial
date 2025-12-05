@@ -38,9 +38,13 @@ class ContainerExecutor(dg.ConfigurableResource):
     docker_network: str = "spatial-network"
     docker_host: str = "unix:///var/run/docker.sock"
     ecs_cluster: Optional[str] = None
-    ecs_task_definition: Optional[str] = None
+    ecs_task_definition: Optional[str] = None  # Deprecated: use task_definitions dict
     ecs_subnets: Optional[List[str]] = None
     ecs_security_groups: Optional[List[str]] = None
+    # New: map image names to task definition ARNs
+    ecs_task_definitions: Optional[Dict[str, str]] = None
+    # Use Fargate Spot for cost savings (can be interrupted)
+    use_fargate_spot: bool = True
     
     def execute(
         self,
@@ -194,33 +198,47 @@ class ContainerExecutor(dg.ConfigurableResource):
         
         if not self.ecs_cluster:
             raise ValueError("ecs_cluster must be set for production execution")
-        if not self.ecs_task_definition:
-            raise ValueError("ecs_task_definition must be set for production execution")
         if not self.ecs_subnets:
             raise ValueError("ecs_subnets must be set for production execution")
+        
+        # Resolve task definition from image name
+        task_definition = self._resolve_task_definition(image)
+        if not task_definition:
+            raise ValueError(
+                f"No task definition found for image: {image}. "
+                f"Configure ecs_task_definitions mapping or ecs_task_definition."
+            )
         
         ecs_client = boto3.client("ecs")
         logs_client = boto3.client("logs")
         
         context.log.info(f"Executing ECS task: {image} with command: {command}")
+        context.log.info(f"Task definition: {task_definition}")
         
         # Convert env_vars to ECS format
         environment = [{"name": k, "value": v} for k, v in env_vars.items()]
         
+        # Build capacity provider strategy for Fargate Spot
+        capacity_provider_strategy = []
+        if self.use_fargate_spot:
+            capacity_provider_strategy = [
+                {"capacityProvider": "FARGATE_SPOT", "weight": 1, "base": 0},
+                {"capacityProvider": "FARGATE", "weight": 0, "base": 0},  # Fallback
+            ]
+        
         try:
             # Run ECS task
-            response = ecs_client.run_task(
-                cluster=self.ecs_cluster,
-                taskDefinition=self.ecs_task_definition,
-                launchType="FARGATE",
-                networkConfiguration={
+            run_task_kwargs = {
+                "cluster": self.ecs_cluster,
+                "taskDefinition": task_definition,
+                "networkConfiguration": {
                     "awsvpcConfiguration": {
                         "subnets": self.ecs_subnets,
                         "securityGroups": self.ecs_security_groups or [],
                         "assignPublicIp": "ENABLED",
                     }
                 },
-                overrides={
+                "overrides": {
                     "containerOverrides": [
                         {
                             "name": "container",  # Default container name
@@ -229,7 +247,15 @@ class ContainerExecutor(dg.ConfigurableResource):
                         }
                     ]
                 },
-            )
+            }
+            
+            # Use capacity provider strategy for Spot, or launchType for on-demand
+            if capacity_provider_strategy:
+                run_task_kwargs["capacityProviderStrategy"] = capacity_provider_strategy
+            else:
+                run_task_kwargs["launchType"] = "FARGATE"
+            
+            response = ecs_client.run_task(**run_task_kwargs)
             
             task_arn = response["tasks"][0]["taskArn"]
             context.log.info(f"Started ECS task: {task_arn}")
@@ -244,6 +270,25 @@ class ContainerExecutor(dg.ConfigurableResource):
                 f"Failed to execute ECS task: {e}",
                 metadata={"image": image, "command": command, "error": str(e)},
             )
+    
+    def _resolve_task_definition(self, image: str) -> Optional[str]:
+        """Resolve task definition ARN from image name."""
+        # Try the task definitions mapping first
+        if self.ecs_task_definitions:
+            # Try exact match
+            if image in self.ecs_task_definitions:
+                return self.ecs_task_definitions[image]
+            # Try matching by image basename (e.g., "spatial/ingestion:latest" -> "ingestion")
+            image_name = image.split("/")[-1].split(":")[0]
+            if image_name in self.ecs_task_definitions:
+                return self.ecs_task_definitions[image_name]
+            # Try matching by family name pattern
+            for key, task_def in self.ecs_task_definitions.items():
+                if key in image or image_name in key:
+                    return task_def
+        
+        # Fall back to legacy single task definition
+        return self.ecs_task_definition
     
     def _wait_for_ecs_task_completion(
         self,

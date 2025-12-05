@@ -3,9 +3,9 @@
  * Transforms API-specific data to layer-agnostic format
  */
 
-import type { LayerDataPoint } from '../../layers/base/types'
-import { getDistrictCoordinates } from '../../lib/electoralDistricts'
-import type { DocumentGeographyData } from '../../lib/mapData'
+import type { LayerDataPoint } from '@/features/map/layers/base/types'
+import { getDistrictCoordinates } from '../lib/electoralDistricts'
+import type { DocumentGeographyData } from '../lib/mapData'
 import type { DataAdapter } from './types'
 
 /**
@@ -36,16 +36,16 @@ export const documentGeographyAdapter: DataAdapter<
     position: getDistrictCoordinates(item.electoral_district),
     name: item.electoral_district,
     type: 'electoral_district',
-    count: item.document_count,
+    count: Number(item.document_count) || 0,
     electoral_district: item.electoral_district,
-    document_year: item.document_year,
-    document_month: item.document_month,
-    politician_count: item.politician_count,
-    party_count: item.party_count,
-    question_count: item.question_count,
-    proposition_count: item.proposition_count,
-    report_count: item.report_count,
-    motion_count: item.motion_count,
+    document_year: Number(item.document_year) || 0,
+    document_month: Number(item.document_month) || 0,
+    politician_count: Number(item.politician_count) || 0,
+    party_count: Number(item.party_count) || 0,
+    question_count: Number(item.question_count) || 0,
+    proposition_count: Number(item.proposition_count) || 0,
+    report_count: Number(item.report_count) || 0,
+    motion_count: Number(item.motion_count) || 0,
   }))
 }
 

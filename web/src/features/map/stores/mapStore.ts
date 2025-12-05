@@ -4,7 +4,8 @@ import { create } from "zustand";
 
 /**
  * SLICE 1: View state
- * */
+ * Controls the map camera position and orientation
+ */
 export interface MapViewState {
   longitude: number;
   latitude: number;
@@ -13,7 +14,7 @@ export interface MapViewState {
   bearing: number;
 }
 
-interface CursorSlice {
+interface ViewSlice {
   viewState: MapViewState;
   setViewState: (updates: Partial<MapViewState>) => void;
 }
@@ -26,12 +27,11 @@ const INITIAL_VIEW_STATE: MapViewState = {
   bearing: 0,
 };
 
-// Cursor slice implementation
-const createCursorSlice = (
+const createViewSlice = (
   set: (
     partial: Partial<MapStore> | ((state: MapStore) => Partial<MapStore>)
   ) => void
-): CursorSlice => ({
+): ViewSlice => ({
   viewState: INITIAL_VIEW_STATE,
   setViewState: (updates) =>
     set((state) => ({
@@ -41,7 +41,8 @@ const createCursorSlice = (
 
 /**
  * SLICE 2: Data layer config
- * */
+ * Global filters that apply to all data layers
+ */
 export interface DataLayerConfig {
   timefilter: {
     startDate?: Date;
@@ -62,7 +63,6 @@ const INITIAL_DATA_LAYER_CONFIG: DataLayerConfig = {
   },
 };
 
-// Data layer config slice implementation
 const createDataLayerSlice = (
   set: (
     partial: Partial<MapStore> | ((state: MapStore) => Partial<MapStore>)
@@ -79,10 +79,10 @@ const createDataLayerSlice = (
     }),
 });
 
-// Combined store type
-type MapStore = CursorSlice & DataLayerSlice;
+// Combined store type - base map concerns only
+type MapStore = ViewSlice & DataLayerSlice;
 
 export const useMapStore = create<MapStore>((set) => ({
-  ...createCursorSlice(set),
+  ...createViewSlice(set),
   ...createDataLayerSlice(set),
 }));

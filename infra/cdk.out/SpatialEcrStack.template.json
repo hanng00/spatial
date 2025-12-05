@@ -1,0 +1,314 @@
+{
+ "Description": "ECR repositories for spatial container images",
+ "Resources": {
+  "IngestionRepoDB552C94": {
+   "Type": "AWS::ECR::Repository",
+   "Properties": {
+    "EmptyOnDelete": true,
+    "ImageScanningConfiguration": {
+     "ScanOnPush": true
+    },
+    "LifecyclePolicy": {
+     "LifecyclePolicyText": "{\"rules\":[{\"rulePriority\":1,\"description\":\"Keep only last 5 images\",\"selection\":{\"tagStatus\":\"any\",\"countType\":\"imageCountMoreThan\",\"countNumber\":5},\"action\":{\"type\":\"expire\"}}]}"
+    },
+    "RepositoryName": "spatial/ingestion"
+   },
+   "UpdateReplacePolicy": "Delete",
+   "DeletionPolicy": "Delete",
+   "Metadata": {
+    "aws:cdk:path": "SpatialEcrStack/IngestionRepo/Resource"
+   }
+  },
+  "TransformationsDbtRepoAA3DFE61": {
+   "Type": "AWS::ECR::Repository",
+   "Properties": {
+    "EmptyOnDelete": true,
+    "ImageScanningConfiguration": {
+     "ScanOnPush": true
+    },
+    "LifecyclePolicy": {
+     "LifecyclePolicyText": "{\"rules\":[{\"rulePriority\":1,\"description\":\"Keep only last 5 images\",\"selection\":{\"tagStatus\":\"any\",\"countType\":\"imageCountMoreThan\",\"countNumber\":5},\"action\":{\"type\":\"expire\"}}]}"
+    },
+    "RepositoryName": "spatial/transformations-dbt"
+   },
+   "UpdateReplacePolicy": "Delete",
+   "DeletionPolicy": "Delete",
+   "Metadata": {
+    "aws:cdk:path": "SpatialEcrStack/TransformationsDbtRepo/Resource"
+   }
+  },
+  "DagsterRepo9E601850": {
+   "Type": "AWS::ECR::Repository",
+   "Properties": {
+    "EmptyOnDelete": true,
+    "ImageScanningConfiguration": {
+     "ScanOnPush": true
+    },
+    "LifecyclePolicy": {
+     "LifecyclePolicyText": "{\"rules\":[{\"rulePriority\":1,\"description\":\"Keep only last 5 images\",\"selection\":{\"tagStatus\":\"any\",\"countType\":\"imageCountMoreThan\",\"countNumber\":5},\"action\":{\"type\":\"expire\"}}]}"
+    },
+    "RepositoryName": "spatial/dagster"
+   },
+   "UpdateReplacePolicy": "Delete",
+   "DeletionPolicy": "Delete",
+   "Metadata": {
+    "aws:cdk:path": "SpatialEcrStack/DagsterRepo/Resource"
+   }
+  },
+  "CDKMetadata": {
+   "Type": "AWS::CDK::Metadata",
+   "Properties": {
+    "Analytics": "v2:deflate64:H4sIAAAAAAAA/0XHSwqAIBAA0LO01yntCB0gqAOEmcH00XDGIqK7R7Ro9XgadKmgyMxB0g6zXLCHq2VjZ2EO6pyNcDVuC4Qc4imq0f+739aJt8S38GFwMFG+6wJUCSqbCFHG5BlXB83nA71uxsVuAAAA"
+   },
+   "Metadata": {
+    "aws:cdk:path": "SpatialEcrStack/CDKMetadata/Default"
+   }
+  }
+ },
+ "Outputs": {
+  "IngestionRepoUri": {
+   "Description": "Ingestion ECR repository URI",
+   "Value": {
+    "Fn::Join": [
+     "",
+     [
+      {
+       "Fn::Select": [
+        4,
+        {
+         "Fn::Split": [
+          ":",
+          {
+           "Fn::GetAtt": [
+            "IngestionRepoDB552C94",
+            "Arn"
+           ]
+          }
+         ]
+        }
+       ]
+      },
+      ".dkr.ecr.",
+      {
+       "Fn::Select": [
+        3,
+        {
+         "Fn::Split": [
+          ":",
+          {
+           "Fn::GetAtt": [
+            "IngestionRepoDB552C94",
+            "Arn"
+           ]
+          }
+         ]
+        }
+       ]
+      },
+      ".",
+      {
+       "Ref": "AWS::URLSuffix"
+      },
+      "/",
+      {
+       "Ref": "IngestionRepoDB552C94"
+      }
+     ]
+    ]
+   }
+  },
+  "TransformationsDbtRepoUri": {
+   "Description": "Transformations DBT ECR repository URI",
+   "Value": {
+    "Fn::Join": [
+     "",
+     [
+      {
+       "Fn::Select": [
+        4,
+        {
+         "Fn::Split": [
+          ":",
+          {
+           "Fn::GetAtt": [
+            "TransformationsDbtRepoAA3DFE61",
+            "Arn"
+           ]
+          }
+         ]
+        }
+       ]
+      },
+      ".dkr.ecr.",
+      {
+       "Fn::Select": [
+        3,
+        {
+         "Fn::Split": [
+          ":",
+          {
+           "Fn::GetAtt": [
+            "TransformationsDbtRepoAA3DFE61",
+            "Arn"
+           ]
+          }
+         ]
+        }
+       ]
+      },
+      ".",
+      {
+       "Ref": "AWS::URLSuffix"
+      },
+      "/",
+      {
+       "Ref": "TransformationsDbtRepoAA3DFE61"
+      }
+     ]
+    ]
+   }
+  },
+  "DagsterRepoUri": {
+   "Description": "Dagster ECR repository URI",
+   "Value": {
+    "Fn::Join": [
+     "",
+     [
+      {
+       "Fn::Select": [
+        4,
+        {
+         "Fn::Split": [
+          ":",
+          {
+           "Fn::GetAtt": [
+            "DagsterRepo9E601850",
+            "Arn"
+           ]
+          }
+         ]
+        }
+       ]
+      },
+      ".dkr.ecr.",
+      {
+       "Fn::Select": [
+        3,
+        {
+         "Fn::Split": [
+          ":",
+          {
+           "Fn::GetAtt": [
+            "DagsterRepo9E601850",
+            "Arn"
+           ]
+          }
+         ]
+        }
+       ]
+      },
+      ".",
+      {
+       "Ref": "AWS::URLSuffix"
+      },
+      "/",
+      {
+       "Ref": "DagsterRepo9E601850"
+      }
+     ]
+    ]
+   }
+  },
+  "ExportsOutputFnGetAttIngestionRepoDB552C94ArnD5B926B2": {
+   "Value": {
+    "Fn::GetAtt": [
+     "IngestionRepoDB552C94",
+     "Arn"
+    ]
+   },
+   "Export": {
+    "Name": "SpatialEcrStack:ExportsOutputFnGetAttIngestionRepoDB552C94ArnD5B926B2"
+   }
+  },
+  "ExportsOutputFnGetAttTransformationsDbtRepoAA3DFE61ArnBD9E7965": {
+   "Value": {
+    "Fn::GetAtt": [
+     "TransformationsDbtRepoAA3DFE61",
+     "Arn"
+    ]
+   },
+   "Export": {
+    "Name": "SpatialEcrStack:ExportsOutputFnGetAttTransformationsDbtRepoAA3DFE61ArnBD9E7965"
+   }
+  },
+  "ExportsOutputRefIngestionRepoDB552C9484E75770": {
+   "Value": {
+    "Ref": "IngestionRepoDB552C94"
+   },
+   "Export": {
+    "Name": "SpatialEcrStack:ExportsOutputRefIngestionRepoDB552C9484E75770"
+   }
+  },
+  "ExportsOutputRefTransformationsDbtRepoAA3DFE61D30F99E2": {
+   "Value": {
+    "Ref": "TransformationsDbtRepoAA3DFE61"
+   },
+   "Export": {
+    "Name": "SpatialEcrStack:ExportsOutputRefTransformationsDbtRepoAA3DFE61D30F99E2"
+   }
+  },
+  "ExportsOutputFnGetAttDagsterRepo9E601850ArnF772716F": {
+   "Value": {
+    "Fn::GetAtt": [
+     "DagsterRepo9E601850",
+     "Arn"
+    ]
+   },
+   "Export": {
+    "Name": "SpatialEcrStack:ExportsOutputFnGetAttDagsterRepo9E601850ArnF772716F"
+   }
+  },
+  "ExportsOutputRefDagsterRepo9E6018503957BF94": {
+   "Value": {
+    "Ref": "DagsterRepo9E601850"
+   },
+   "Export": {
+    "Name": "SpatialEcrStack:ExportsOutputRefDagsterRepo9E6018503957BF94"
+   }
+  }
+ },
+ "Parameters": {
+  "BootstrapVersion": {
+   "Type": "AWS::SSM::Parameter::Value<String>",
+   "Default": "/cdk-bootstrap/hnb659fds/version",
+   "Description": "Version of the CDK Bootstrap resources in this environment, automatically retrieved from SSM Parameter Store. [cdk:skip]"
+  }
+ },
+ "Rules": {
+  "CheckBootstrapVersion": {
+   "Assertions": [
+    {
+     "Assert": {
+      "Fn::Not": [
+       {
+        "Fn::Contains": [
+         [
+          "1",
+          "2",
+          "3",
+          "4",
+          "5"
+         ],
+         {
+          "Ref": "BootstrapVersion"
+         }
+        ]
+       }
+      ]
+     },
+     "AssertDescription": "CDK bootstrap stack version 6 required. Please run 'cdk bootstrap' with a recent version of the CDK CLI."
+    }
+   ]
+  }
+ }
+}
