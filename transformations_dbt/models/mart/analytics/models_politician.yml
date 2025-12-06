@@ -1,0 +1,53 @@
+version: 2
+
+models:
+  - name: mart_politician_activity
+    description: "Lean activity rollup by politician across documents, speeches, and votes"
+    columns:
+      - name: intressent_id
+        description: "Politician identifier"
+        tests:
+          - unique
+          - not_null
+      - name: party
+        description: "Latest known party from int_politicians"
+      - name: electoral_district
+        description: "Latest known electoral district"
+      - name: documents_authored
+        description: "Distinct documents where the politician is involved"
+      - name: speeches
+        description: "Distinct speeches by the politician"
+      - name: votes
+        description: "Distinct votes by the politician"
+      - name: yes_votes
+        description: "Count of yes votes"
+      - name: no_votes
+        description: "Count of no votes"
+      - name: abstain_votes
+        description: "Count of abstain votes"
+      - name: parliamentary_sessions_active
+        description: "Distinct parliamentary sessions present in their activity"
+      - name: first_activity_date
+        description: "Earliest activity timestamp"
+      - name: last_activity_date
+        description: "Latest activity timestamp"
+
+  - name: mart_politician_geography
+    description: "Geographic footprint of each politician's document links"
+    columns:
+      - name: intressent_id
+        description: "Politician identifier"
+        tests:
+          - unique
+          - not_null
+      - name: document_count
+        description: "Distinct documents linked to the politician"
+      - name: district_count
+        description: "Distinct electoral districts across their documents"
+      - name: party_count
+        description: "Distinct parties observed across their documents"
+      - name: first_document_date
+        description: "Earliest document date"
+      - name: last_document_date
+        description: "Latest document date"
+

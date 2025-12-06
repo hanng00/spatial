@@ -19,14 +19,14 @@ services:
       - spatial-network
     # Environment variables passed at runtime
 
-  cognition:
-    build:
-      context: .
-      dockerfile: cognition/Dockerfile
-    image: spatial/cognition:latest
-    networks:
-      - spatial-network
-    # Environment variables passed at runtime
+  # cognition:
+  #   build:
+  #     context: .
+  #     dockerfile: cognition/Dockerfile
+  #   image: spatial/cognition:latest
+  #   networks:
+  #     - spatial-network
+  #   # Environment variables passed at runtime
 
 networks:
   spatial-network:

@@ -6,6 +6,9 @@ Provides documents from Riksdagen including decisions, propositions, motions, an
 Supports both incremental and backfill modes.
 """
 
+from datetime import datetime
+from typing import Any, Dict
+
 from dlt.sources.rest_api import rest_api_source
 
 INITIAL_INCREMENTAL_VALUE = "2025-01-01"
@@ -24,8 +27,8 @@ def get_resource(start_date: str | None = None, end_date: str | None = None) -> 
         Resource configuration dict for dlt rest_api_source.
 
     Note:
-        - Backfill mode: Both dates provided → replace disposition
-        - Incremental mode: No dates → append disposition with cursor
+        - Backfill mode: Both dates provided → merge disposition with primary key
+        - Incremental mode: No dates → merge disposition with cursor
         - Requires pagination via JSONLinkPaginator
     """
     # Backfill mode
@@ -44,7 +47,9 @@ def get_resource(start_date: str | None = None, end_date: str | None = None) -> 
                 },
                 "data_selector": "dokumentlista.dokument",
             },
-            "write_disposition": "replace",
+            # Merge on document id so partitioned backfills accumulate instead of overwrite
+            "write_disposition": "merge",
+            "primary_key": ["id"],
             "max_table_nesting": 1,
         }
 
@@ -67,7 +72,9 @@ def get_resource(start_date: str | None = None, end_date: str | None = None) -> 
                 "initial_value": INITIAL_INCREMENTAL_VALUE,
             },
         },
-        "write_disposition": "append",
+        # Merge on document id to deduplicate re-runs
+        "write_disposition": "merge",
+        "primary_key": ["id"],
         "max_table_nesting": 1,
     }
 
@@ -124,4 +131,35 @@ def create_source(
     if paginator:
         source_config["client"]["paginator"] = paginator
 
-    return rest_api_source(source_config)
+    source = rest_api_source(source_config)
+    resource = source.resources["dokumentlista"]
+
+    @resource.add_map
+    def normalize_publicerad(row: Dict[str, Any]) -> Dict[str, Any]:
+        """Coerce empty/invalid publicerad values to null to avoid destination cast errors."""
+        raw = row.get("publicerad")
+
+        if raw is None:
+            return row
+
+        if isinstance(raw, str):
+            cleaned = raw.strip()
+            if not cleaned:
+                row["publicerad"] = None
+                return row
+
+            try:
+                parsed = datetime.fromisoformat(cleaned.replace(" ", "T"))
+                # Use a normalized timestamp string DuckDB can cast consistently.
+                row["publicerad"] = parsed.isoformat(sep=" ", timespec="seconds")
+            except Exception:
+                row["publicerad_raw"] = raw
+                row["publicerad"] = None
+        else:
+            # Unexpected type: keep raw copy and null out parsed field
+            row["publicerad_raw"] = raw
+            row["publicerad"] = None
+
+        return row
+
+    return source

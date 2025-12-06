@@ -8,6 +8,7 @@
 import { create } from 'zustand'
 import type {
   BaseLayerConfig,
+  LayerDataPoint,
   LayerDefinition,
 } from '../layers/base/types'
 import type { LayerRegistryEntry } from '../layers/registry/types'
@@ -15,7 +16,7 @@ import type { LayerRegistryEntry } from '../layers/registry/types'
 interface LayerRegistryState {
   entries: Map<string, LayerRegistryEntry>
   register: <TConfig extends BaseLayerConfig>(
-    definition: LayerDefinition<TConfig, any>,
+    definition: LayerDefinition<TConfig, LayerDataPoint>,
     config: TConfig
   ) => void
   unregister: (layerId: string) => void
@@ -32,13 +33,13 @@ export const useLayerRegistryStore = create<LayerRegistryState>((set, get) => ({
   entries: new Map(),
 
   register: <TConfig extends BaseLayerConfig>(
-    definition: LayerDefinition<TConfig, any>,
+    definition: LayerDefinition<TConfig, LayerDataPoint>,
     config: TConfig
   ) => {
     set((state) => {
       const newEntries = new Map(state.entries)
       newEntries.set(definition.metadata.id, {
-        definition: definition as LayerDefinition<BaseLayerConfig, any>,
+        definition: definition as LayerDefinition<BaseLayerConfig, LayerDataPoint>,
         config,
         enabled: config.enabled ?? true,
       })

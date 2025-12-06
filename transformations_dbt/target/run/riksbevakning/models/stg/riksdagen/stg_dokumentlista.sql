@@ -1,12 +1,23 @@
 
   
-  create view "analytics"."main_stg"."stg_dokumentlista__dbt_tmp" as (
+  create view "spatial_dagster"."main_stg"."stg_dokumentlista__dbt_tmp" as (
     -- Staging model for dokumentlista (documents)
--- Cleans and standardizes the raw data from riksdagen API
+-- Raw passthrough - only source abstraction layer
+-- Business logic belongs in int layer
+-- Using SELECT * to include all columns that exist in source table
+
+with ranked as (
+    select
+        *,
+        row_number() over (
+            partition by _dlt_id
+            order by systemdatum desc nulls last
+        ) as rn
+    from "spatial_dagster"."raw_riksdagen"."dokumentlista"
+)
 
 select
-    -- Add all relevant columns from dokumentlista
-    -- This is a placeholder - adjust based on actual schema
     *
-from "raw"."riksdagen"."dokumentlista"
+from ranked
+where rn = 1
   );

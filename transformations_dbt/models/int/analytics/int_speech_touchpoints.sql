@@ -25,5 +25,6 @@ select
     _dlt_load_id,
     _dlt_id
 from {{ ref('stg_anforandelista') }}
-where talare is not null and intressent_id is not null
+where talare is not null
+  and intressent_id is not null
 

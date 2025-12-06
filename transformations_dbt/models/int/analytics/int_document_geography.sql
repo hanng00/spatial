@@ -6,9 +6,16 @@ with document_with_indices as (
     -- Generate indices for each element in the JSON array
     select 
         d.*,
-        unnest(generate_series(0::BIGINT, json_array_length(d.dokintressent__intressent)::BIGINT - 1)) as idx
+        coalesce(json_array_length(d.dokintressent__intressent), 0)::bigint as dokintressent_len,
+        unnest(
+            range(
+                0::bigint,
+                coalesce(json_array_length(d.dokintressent__intressent), 0)::bigint
+            )
+        ) as idx
     from {{ ref('stg_dokumentlista') }} d
     where d.dokintressent__intressent is not null
+        and coalesce(json_array_length(d.dokintressent__intressent), 0) > 0
         and d.dok_id is not null
 ),
 
@@ -27,7 +34,7 @@ document_intressent_unnested as (
         inlamnad as submitted_date,
         debattdag as debate_date,
         beslutsdag as decision_date,
-        json_extract_string(dokintressent__intressent, '$[' || idx::VARCHAR || '].intressent_id') as intressent_id,
+        nullif(trim(json_extract_string(dokintressent__intressent, '$[' || idx::VARCHAR || '].intressent_id')), '') as intressent_id,
         json_extract_string(dokintressent__intressent, '$[' || idx::VARCHAR || '].roll') as role,
         _dlt_load_id,
         _dlt_id
@@ -90,5 +97,5 @@ select
     _dlt_load_id,
     _dlt_id
 from document_with_geography
-where electoral_district is not null
-    or explicit_location is not null
+where dok_id is not null
+  and (electoral_district is not null or explicit_location is not null)

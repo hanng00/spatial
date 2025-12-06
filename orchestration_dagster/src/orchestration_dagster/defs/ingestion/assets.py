@@ -4,7 +4,7 @@ Dagster assets for ingestion (DLT) that execute via ContainerExecutor.
 Each asset represents a raw data ingestion task that runs the ingestion container.
 Execution is abstracted via ContainerExecutor - works locally (Docker) and production (ECS).
 """
-from datetime import datetime
+from datetime import datetime, timedelta
 from typing import Dict, List, Tuple
 
 import dagster as dg
@@ -15,6 +15,13 @@ from orchestration_dagster.lib.secrets_resource import SecretsResource
 
 GROUP_NAME = "raw_riksdagen"
 date_partition = DailyPartitionsDefinition(start_date="1990-01-01")
+
+
+def _get_partition_suffix(context: AssetExecutionContext) -> str:
+    """Return a safe partition suffix for naming runs."""
+    if getattr(context, "has_partition_key", False):
+        return context.partition_key
+    return "latest"
 
 
 def _build_ingestion_command(
@@ -34,12 +41,17 @@ def _build_ingestion_command(
     database_name = database_name or secrets_resource.get_database_name()
     
     # Get partition date range if partitioned
-    partition_key = context.partition_key if hasattr(context, "partition_key") else None
+    partition_key = context.partition_key if getattr(context, "has_partition_key", False) else None
     start_date = None
     end_date = None
     
-    if partition_key:
-        # For daily partitions, use the partition date
+    # Time window partitions (e.g., weekly) expose a start/end; use inclusive bounds
+    if getattr(context, "has_partition_time_window", False) and context.partition_time_window:
+        window = context.partition_time_window
+        start_date = window.start.date().strftime("%Y-%m-%d")
+        end_date = (window.end - timedelta(days=1)).date().strftime("%Y-%m-%d")
+    elif partition_key:
+        # Fallback for string-based daily partitions
         partition_date = datetime.strptime(partition_key, "%Y-%m-%d").date()
         start_date = partition_date.strftime("%Y-%m-%d")
         end_date = partition_date.strftime("%Y-%m-%d")
@@ -66,7 +78,6 @@ def _build_ingestion_command(
 @dg.asset(
     key=AssetKey(["raw_riksdagen", "anforandelista"]),
     group_name=GROUP_NAME,
-    partitions_def=date_partition,
     description="Ingest anforandelista (speeches) data from Riksdagen API",
 )
 def anforandelista(
@@ -82,7 +93,7 @@ def anforandelista(
         image="spatial/ingestion:latest",
         command=command,
         env_vars=env_vars,
-        name=f"ingest_anforandelista_{context.partition_key if hasattr(context, 'partition_key') else 'latest'}",
+        name=f"ingest_anforandelista_{_get_partition_suffix(context)}",
     )
     
     if not result.success:
@@ -121,7 +132,7 @@ def dokumentlista(
         image="spatial/ingestion:latest",
         command=command,
         env_vars=env_vars,
-        name=f"ingest_dokumentlista_{context.partition_key if hasattr(context, 'partition_key') else 'latest'}",
+        name=f"ingest_dokumentlista_{_get_partition_suffix(context)}",
     )
     
     if not result.success:
@@ -198,7 +209,7 @@ def voteringlista(
         image="spatial/ingestion:latest",
         command=command,
         env_vars=env_vars,
-        name=f"ingest_voteringlista_{context.partition_key if hasattr(context, 'partition_key') else 'latest'}",
+        name=f"ingest_voteringlista_{_get_partition_suffix(context)}",
     )
     
     if not result.success:

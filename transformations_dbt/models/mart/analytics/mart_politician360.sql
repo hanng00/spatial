@@ -1,6 +1,5 @@
 -- Mart model: Politician360 - Complete politician touchpoint view
 -- Final dataset for politician analysis and reporting
-
 with politician_summary as (
     select
         p.intressent_id,
@@ -36,7 +35,6 @@ with politician_summary as (
         p.intressent_id, p.display_name, p.full_name, p.party_clean, 
         p.electoral_district, p.birth_year, p.gender, p.member_status
 ),
-
 politician_timeline as (
     select
         intressent_id,
@@ -52,7 +50,10 @@ politician_timeline as (
         ) as touchpoint_rank
     from {{ ref('int_politician_touchpoints') }}
 ),
+{{ config(enabled=false) }}
 
+-- Deprecated: replaced by mart_politician_activity and mart_politician_geography
+select 1 where false
 recent_activity as (
     select
         intressent_id,

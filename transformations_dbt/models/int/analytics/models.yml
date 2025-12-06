@@ -133,3 +133,86 @@ models:
         description: "Committee/organ (VARCHAR, e.g., 'KU', 'S', 'eun')"
       - name: explicit_location
         description: "Explicit location from plats field (VARCHAR, often null)"
+
+  - name: int_document_nodes
+    description: "Document nodes with parsed dok_id components, derived type, and basic metadata"
+    columns:
+      - name: dok_id
+        description: "Document identifier (dok_id)"
+        tests:
+          - not_null
+          - unique
+      - name: rm_code
+        description: "Parsed riksmöte code (first two characters of dok_id)"
+      - name: series_code
+        description: "Parsed series code (characters 3-4 of dok_id)"
+      - name: derived_doc_type
+        description: "Derived document type from series code (fallback to typ/doktyp)"
+      - name: reference_count
+        description: "Number of reference entries present in dokreferens__referens"
+      - name: intressent_count
+        description: "Number of intressenter present in dokintressent__intressent"
+
+  - name: int_document_edges_refs
+    description: "Document-to-document edges derived from dokreferens__referens"
+    columns:
+      - name: source_dok_id
+        description: "Source document identifier"
+      - name: target_dok_id
+        description: "Target document identifier"
+      - name: relation_type
+        description: "Relation type (reference)"
+      - name: relation_subtype
+        description: "Reference subtype from referenstyp"
+      - name: source_field
+        description: "Field the edge was extracted from"
+
+  - name: int_document_edges_intressent
+    description: "Document-to-person edges derived from dokintressent__intressent"
+    columns:
+      - name: source_dok_id
+        description: "Source document identifier"
+      - name: intressent_id
+        description: "Target person identifier"
+      - name: relation_type
+        description: "Relation type (person_involved)"
+      - name: relation_subtype
+        description: "Role/subtype"
+
+  - name: int_document_edges_speech
+    description: "Speech-to-document edges via rel_dok_id"
+    columns:
+      - name: target_dok_id
+        description: "Document identifier referenced by the speech"
+      - name: speech_id
+        description: "Speech identifier (systemnyckel)"
+      - name: relation_type
+        description: "Relation type (speech)"
+
+  - name: int_document_edges_vote
+    description: "Vote-to-document edges via dok_id"
+    columns:
+      - name: target_dok_id
+        description: "Document identifier referenced by the vote"
+      - name: votering_id
+        description: "Vote identifier"
+      - name: relation_type
+        description: "Relation type (vote)"
+
+  - name: int_document_edges
+    description: "Unified document edge set (reference, person, speech, vote)"
+    columns:
+      - name: source_id
+        description: "Edge source identifier (dok_id, speech_id, or votering_id)"
+      - name: target_id
+        description: "Edge target identifier (dok_id)"
+      - name: relation_type
+        description: "Relation type enum (reference, person_involved, speech, vote)"
+      - name: relation_subtype
+        description: "Subtype per edge origin"
+      - name: intressent_id
+        description: "Person identifier (for person/speech/vote edges)"
+      - name: vote_choice
+        description: "Vote choice when applicable"
+      - name: parliamentary_session
+        description: "Parliamentary session hint from the edge"

@@ -1,0 +1,174 @@
+version: 2
+
+models:
+  - name: mart_document_graph
+    description: "Graph-ready document nodes enriched with edge counts and parsed dok_id metadata"
+    columns:
+      - name: dok_id
+        description: "Document identifier (primary key)"
+        tests:
+          - unique
+          - not_null
+      - name: series_code
+        description: "Series code parsed from dok_id"
+      - name: derived_doc_type
+        description: "Derived document type from series code (fallback to typ/doktyp)"
+      - name: document_title
+        description: "Document title"
+      - name: document_date
+        description: "Primary document date"
+      - name: committee
+        description: "Committee/organ"
+      - name: rm
+        description: "Parliamentary session (rm)"
+      - name: outgoing_edges
+        description: "Total outgoing edges from this document"
+      - name: incoming_edges
+        description: "Total incoming edges to this document"
+      - name: outgoing_reference_edges
+        description: "Outgoing reference edges count"
+      - name: incoming_reference_edges
+        description: "Incoming reference edges count"
+      - name: outgoing_person_edges
+        description: "Outgoing person edges count"
+      - name: outgoing_speech_edges
+        description: "Outgoing speech edges count"
+      - name: outgoing_vote_edges
+        description: "Outgoing vote edges count"
+      - name: incoming_speech_edges
+        description: "Incoming speech edges count"
+      - name: incoming_vote_edges
+        description: "Incoming vote edges count"
+
+  - name: mart_document_edges
+    description: "Unified edge list exposed at mart layer"
+    columns:
+      - name: source_id
+        description: "Edge source identifier (dok_id, speech_id, or votering_id)"
+      - name: target_id
+        description: "Edge target identifier (dok_id)"
+      - name: relation_type
+        description: "Relation type enum (reference, person_involved, speech, vote)"
+      - name: relation_subtype
+        description: "Subtype per edge origin"
+      - name: intressent_id
+        description: "Person identifier when applicable"
+      - name: vote_choice
+        description: "Vote choice when applicable"
+      - name: parliamentary_session
+        description: "Parliamentary session hint"
+
+  - name: mart_document_geography
+    description: "Document geography aggregation - aggregates documents by electoral district and time for map visualization"
+    columns:
+      - name: electoral_district
+        description: "Electoral district (VARCHAR, valkrets)"
+        tests:
+          - not_null
+      - name: document_year
+        description: "Year of documents (INTEGER)"
+      - name: document_month
+        description: "Month of documents (INTEGER, 1-12)"
+      - name: document_count
+        description: "Total number of documents (INTEGER)"
+      - name: politician_count
+        description: "Number of distinct politicians involved (INTEGER)"
+      - name: party_count
+        description: "Number of distinct parties involved (INTEGER)"
+      - name: question_count
+        description: "Number of questions (fr) (INTEGER)"
+      - name: proposition_count
+        description: "Number of propositions (prop) (INTEGER)"
+      - name: report_count
+        description: "Number of reports (bet) (INTEGER)"
+      - name: motion_count
+        description: "Number of motions (INTEGER)"
+      - name: committee_count
+        description: "Number of distinct committees (INTEGER)"
+      - name: geography_time_key
+        description: "Composite key for time-series analysis (electoral_district_YYYY_MM)"
+
+  - name: mart_document_geography_points
+    description: "Document-to-district/person/party rows for spatial pivots"
+    columns:
+      - name: dok_id
+        description: "Document identifier"
+      - name: electoral_district
+        description: "Electoral district (valkrets)"
+      - name: party
+        description: "Party code"
+      - name: intressent_id
+        description: "Politician identifier"
+      - name: role
+        description: "Role in document"
+      - name: document_date
+        description: "Document date"
+      - name: document_type
+        description: "Document type"
+      - name: document_year
+        description: "Year extracted from document_date"
+      - name: document_month
+        description: "Month extracted from document_date"
+
+  - name: mart_document_geography_doc_summary
+    description: "Per-document geography rollup for quick stats"
+    columns:
+      - name: dok_id
+        description: "Document identifier"
+        tests:
+          - unique
+          - not_null
+      - name: district_count
+        description: "Distinct districts linked to the document"
+      - name: politician_count
+        description: "Distinct politicians linked to the document"
+      - name: party_count
+        description: "Distinct parties linked to the document"
+
+  - name: mart_document_outcomes
+    description: "Derived outcomes for documents based on vote presence"
+    columns:
+      - name: dok_id
+        description: "Document identifier"
+        tests:
+          - unique
+          - not_null
+      - name: derived_outcome
+        description: "Outcome classification (e.g., voted/unknown)"
+      - name: vote_rows
+        description: "Number of vote rows linked to the document"
+
+  - name: mart_document_topics
+    description: "Rule-based topic tags for documents (placeholder until NLP)"
+    columns:
+      - name: dok_id
+        description: "Document identifier"
+      - name: topic
+        description: "Assigned topic bucket"
+
+  - name: mart_votes_on_documents
+    description: "Votes associated with documents for citizen-facing queries"
+    columns:
+      - name: votering_id
+        description: "Voting identifier"
+      - name: dok_id
+        description: "Document identifier the vote is associated with"
+      - name: parliamentary_session
+        description: "Parliamentary session (rm)"
+      - name: beteckning
+        description: "Document beteckning"
+      - name: punkt
+        description: "Point/section of the vote"
+      - name: vote_description
+        description: "Human-readable vote description"
+      - name: vote_subject
+        description: "Subject the vote concerns"
+      - name: intressent_id
+        description: "Politician identifier"
+      - name: party
+        description: "Politician party"
+      - name: vote_choice
+        description: "Vote choice"
+      - name: vote_timestamp
+        description: "Timestamp of the vote"
+

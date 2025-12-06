@@ -1,28 +1,26 @@
 -- Staging model for anforandelista (speeches)
--- Cleans and standardizes the raw data from riksdagen API
+-- Raw passthrough - only source abstraction layer
+-- Business logic belongs in int layer
 
 select
     systemnyckel,
     dok_datum,
-    dok_rm as rm,
+    dok_rm,
     dok_id,
     dok_titel,
     anforande_id,
     anforande_nummer,
     talare,
     parti,
-    anforandetext as anforande_text,
+    anforandetext,
     intressent_id,
-    -- Add any cleaning/standardization here
-    trim(upper(parti)) as parti_clean,
-    case 
-        when dok_datum is not null then dok_datum
-        else '1900-01-01'
-    end as dok_datum_clean,
-    -- Additional fields
+    rel_dok_id,
     avsnittsrubrik,
     underrubrik,
     kammaraktivitet,
     replik,
-    systemdatum
-from "raw"."riksdagen"."anforandelista"
+    systemdatum,
+    _dlt_load_id,
+    _dlt_id
+from "spatial_dagster"."raw_riksdagen"."anforandelista"
+where talare is not null

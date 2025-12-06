@@ -3,12 +3,13 @@
  */
 
 import { columnarToRows, type ColumnarResponse } from "@/lib/columnar";
+import { Json } from "@/types/json";
 
 export interface Motion {
   dok_id: string;
   document_title: string;
   document_date: string;
-  document_type: string;
+  document_type: 'frs' | 'fr' | 'mot' | 'ip';
   committee: string | null;
   party: string | null;
   intressent_id: string | null;
@@ -43,7 +44,7 @@ export async function fetchMotions(params: FetchMotionsParams): Promise<Motion[]
   }
 
   const columnar: ColumnarResponse = await response.json();
-  return columnarToRows<Motion>(columnar);
+  return columnarToRows<Motion & Record<string, Json>>(columnar);
 }
 
 /**

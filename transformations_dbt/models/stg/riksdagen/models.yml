@@ -217,6 +217,12 @@ models:
         description: "CMS tags (JSON)"
       - name: dokreferens__referens
         description: "Document references (JSON)"
+      - name: dokintressent_len
+        description: "Count of entries in dokintressent__intressent (BIGINT)"
+      - name: dokreferens_len
+        description: "Count of entries in dokreferens__referens (BIGINT)"
+      - name: dok_id_normalized
+        description: "Trimmed dok_id with empty strings set to null"
 
   - name: stg_voteringlista
     description: "Staging model for voteringlista - raw passthrough from source"
@@ -241,11 +247,15 @@ models:
         description: "Speech date (VARCHAR)"
       - name: dok_id
         description: "Document identifier (VARCHAR)"
+      - name: dok_id_normalized
+        description: "Trimmed dok_id with empty strings set to null"
       - name: talare
         description: "Speaker name (VARCHAR)"
       - name: parti
         description: "Party name (VARCHAR)"
       - name: intressent_id
         description: "Politician identifier (VARCHAR)"
+      - name: rel_dok_id
+        description: "Related document id (VARCHAR, trimmed/nullified)"
       - name: anforandetext
         description: "Speech text (VARCHAR)"

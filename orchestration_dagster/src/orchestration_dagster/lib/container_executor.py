@@ -8,6 +8,7 @@ This allows assets to be environment-agnostic - same code works locally and in p
 """
 import os
 import time
+import uuid
 from typing import Dict, List, Optional
 
 import dagster as dg
@@ -112,6 +113,9 @@ class ContainerExecutor(dg.ConfigurableResource):
                 client.networks.create(self.docker_network, driver="bridge")
             
             context.log.info(f"Executing container: {image} with command: {command}")
+
+            # Avoid name collisions by appending a short random suffix
+            resolved_name = f"{name}-{uuid.uuid4().hex[:8]}" if name else None
             
             # Run container with detach=True to get container object, then wait for completion
             container = client.containers.run(
@@ -120,7 +124,7 @@ class ContainerExecutor(dg.ConfigurableResource):
                 environment=env_vars,
                 network=self.docker_network,
                 detach=True,  # Get container object
-                name=name,
+                name=resolved_name,
                 mem_limit=kwargs.get("mem_limit", "2g"),
                 cpu_count=kwargs.get("cpu_count", 1),
                 stdout=True,

@@ -1,8 +1,22 @@
 -- Staging model for personlista (members)
--- Cleans and standardizes the raw data from riksdagen API
+-- Raw passthrough - only source abstraction layer
+-- Business logic belongs in int layer
 
 select
-    -- Add all relevant columns from personlista
-    -- This is a placeholder - adjust based on actual schema
-    *
-from "raw"."riksdagen"."personlista"
+    intressent_id,
+    hangar_id,
+    tilltalsnamn,
+    efternamn,
+    sorteringsnamn,
+    parti,
+    valkrets,
+    iort,
+    fodd_ar,
+    kon,
+    status,
+    personuppdrag,
+    personuppgift,
+    _dlt_load_id,
+    _dlt_id
+from "spatial_dagster"."raw_riksdagen"."personlista"
+where intressent_id is not null

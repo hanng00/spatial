@@ -1,8 +1,27 @@
 -- Staging model for voteringlista (voting records)
--- Cleans and standardizes the raw data from riksdagen API
+-- Raw passthrough - only source abstraction layer
+-- Business logic belongs in int layer
 
 select
-    -- Add all relevant columns from voteringlista
-    -- This is a placeholder - adjust based on actual schema
-    *
-from "raw"."riksdagen"."voteringlista"
+    votering_id,
+    intressent_id,
+    namn,
+    fornamn,
+    efternamn,
+    parti,
+    valkrets,
+    iort,
+    kon,
+    fodd,
+    rost,
+    avser,
+    votering,
+    dok_id,
+    beteckning,
+    punkt,
+    rm,
+    systemdatum,
+    _dlt_load_id,
+    _dlt_id
+from "spatial_dagster"."raw_riksdagen"."voteringlista"
+where intressent_id is not null

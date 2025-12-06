@@ -7,18 +7,12 @@ import { NextResponse } from "next/server";
  */
 export async function GET(request: Request) {
   const { searchParams } = new URL(request.url);
-  const year = parseNumericParam(searchParams.get("year"), new Date().getFullYear());
+  const year = parseNumericParam(
+    searchParams.get("year"),
+    new Date().getFullYear()
+  );
   const month = parseNumericParam(searchParams.get("month"));
   const limit = parseNumericParam(searchParams.get("limit"), 200);
-
-  // If no token, return mock data (for development)
-  if (!process.env.MOTHERDUCK_ACCESS_TOKEN) {
-    console.warn("MOTHERDUCK_ACCESS_TOKEN not set, returning mock document geography data");
-    return NextResponse.json({
-      ...getMockDocumentGeography(year, month),
-      _mock: true,
-    });
-  }
 
   try {
     const client = await MotherDuckClient.createInstance();
@@ -53,7 +47,8 @@ export async function GET(request: Request) {
         COUNT(DISTINCT CASE WHEN document_type = 'bet' THEN dok_id END) AS report_count,
         COUNT(DISTINCT CASE WHEN document_type IN ('mot', 'motion') THEN dok_id END) AS motion_count
       FROM filtered
-      GROUP BY 1,2,3
+      GROUP BY 
+        1,2,3
       ORDER BY document_count DESC
       LIMIT ${limit};
     `;
@@ -63,15 +58,6 @@ export async function GET(request: Request) {
     return NextResponse.json(result);
   } catch (error) {
     console.error("Error fetching document geography:", error);
-
-    // Return mock data on error (helpful for development)
-    if (process.env.NODE_ENV === "development") {
-      return NextResponse.json({
-        ...getMockDocumentGeography(year, month),
-        _mock: true,
-        _error: String(error),
-      });
-    }
 
     return NextResponse.json(
       { error: "Failed to fetch document geography data" },

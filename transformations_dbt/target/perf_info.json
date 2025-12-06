@@ -1,30 +1,51 @@
 {
-    "path_count": 150,
-    "parsed_path_count": 0,
-    "static_analysis_path_count": 0,
-    "static_analysis_parsed_path_count": 0,
+    "path_count": 166,
+    "parsed_path_count": 166,
+    "static_analysis_path_count": 27,
+    "static_analysis_parsed_path_count": 26,
     "is_partial_parse_enabled": true,
     "is_static_analysis_enabled": true,
-    "read_files_elapsed": 0.010194833972491324,
-    "load_all_elapsed": 0.0871452079154551,
+    "read_files_elapsed": 0.020475790952332318,
+    "load_macros_elapsed": 0.38170187501236796,
+    "parse_project_elapsed": 0.3580330830300227,
+    "patch_sources_elapsed": 0.013913542032241821,
+    "process_manifest_elapsed": 0.02304812497459352,
+    "load_all_elapsed": 0.887045249924995,
     "projects": [
         {
             "project_name": "riksbevakning",
-            "elapsed": 0,
-            "parsers": [],
-            "parsed_path_count": 0
+            "elapsed": 0.35446866683196276,
+            "parsers": [
+                {
+                    "parser": "model",
+                    "elapsed": 0.15676579193677753,
+                    "parsed_path_count": 27
+                },
+                {
+                    "parser": "test",
+                    "elapsed": 0.19597804103977978,
+                    "parsed_path_count": 5
+                }
+            ],
+            "parsed_path_count": 32
         },
         {
             "project_name": "dbt_duckdb",
-            "elapsed": 0,
+            "elapsed": 0.0013832501135766506,
             "parsers": [],
             "parsed_path_count": 0
         },
         {
             "project_name": "dbt",
-            "elapsed": 0,
-            "parsers": [],
-            "parsed_path_count": 0
+            "elapsed": 0.0019137500785291195,
+            "parsers": [
+                {
+                    "parser": "doc",
+                    "elapsed": 0.00012979202438145876,
+                    "parsed_path_count": 1
+                }
+            ],
+            "parsed_path_count": 1
         }
     ]
 }

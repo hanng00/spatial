@@ -9,7 +9,7 @@ with document_intressent as (
         titel as document_title,
         doktyp as document_type,
         -- Extract intressent_id from nested JSON
-        json_extract_string(dokintressent__intressent, '$.intressent_id') as intressent_id,
+        nullif(trim(json_extract_string(dokintressent__intressent, '$.intressent_id')), '') as intressent_id,
         json_extract_string(dokintressent__intressent, '$.roll') as role,
         json_extract_string(dokintressent__intressent, '$.ordning') as order_rank,
         _dlt_load_id,
@@ -58,4 +58,5 @@ select
     _dlt_id
 from document_with_person
 where intressent_id is not null
+  and dok_id is not null
 
