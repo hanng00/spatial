@@ -40,7 +40,7 @@ ecsTasksStack.addDependency(ecrStack);
 const dagsterStack = new DagsterStack(app, 'SpatialDagsterStack', {
   env,
   dagsterRepo: ecrStack.dagsterRepo,
-  dsqlCluster: dsqlStack.cluster,
+  dsqlEndpoint: dsqlStack.clusterEndpoint,
   ecsCluster: ecsTasksStack.cluster,
   taskDefinitions: {
     ingestion: ecsTasksStack.ingestionTaskDef,

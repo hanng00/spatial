@@ -1,18 +1,18 @@
 {
   "version": "48.0.0",
   "files": {
-    "8789579f2dc90a8270827a968dd8b09c820ab64f1067daf8259b1a9f9382463e": {
+    "bbf1cfc40435c4c4272d6136d7808b1d37bb94f3e27f7e0b7b747c7abd94d483": {
       "displayName": "SpatialDagsterStack Template",
       "source": {
         "path": "SpatialDagsterStack.template.json",
         "packaging": "file"
       },
       "destinations": {
-        "current_account-us-east-1-ad403492": {
-          "bucketName": "cdk-hnb659fds-assets-${AWS::AccountId}-us-east-1",
-          "objectKey": "8789579f2dc90a8270827a968dd8b09c820ab64f1067daf8259b1a9f9382463e.json",
+        "030847345012-us-east-1-751c20e1": {
+          "bucketName": "cdk-hnb659fds-assets-030847345012-us-east-1",
+          "objectKey": "bbf1cfc40435c4c4272d6136d7808b1d37bb94f3e27f7e0b7b747c7abd94d483.json",
           "region": "us-east-1",
-          "assumeRoleArn": "arn:${AWS::Partition}:iam::${AWS::AccountId}:role/cdk-hnb659fds-file-publishing-role-${AWS::AccountId}-us-east-1"
+          "assumeRoleArn": "arn:${AWS::Partition}:iam::030847345012:role/cdk-hnb659fds-file-publishing-role-030847345012-us-east-1"
         }
       }
     }

@@ -1,15 +1,15 @@
 import * as cdk from 'aws-cdk-lib';
+import * as apprunner from 'aws-cdk-lib/aws-apprunner';
 import * as ec2 from 'aws-cdk-lib/aws-ec2';
 import * as ecr from 'aws-cdk-lib/aws-ecr';
 import * as ecs from 'aws-cdk-lib/aws-ecs';
 import * as iam from 'aws-cdk-lib/aws-iam';
 import * as secretsmanager from 'aws-cdk-lib/aws-secretsmanager';
-import * as apprunner from 'aws-cdk-lib/aws-apprunner';
 import { Construct } from 'constructs';
 
 export interface DagsterStackProps extends cdk.StackProps {
   dagsterRepo: ecr.Repository;
-  dsqlCluster: cdk.CfnResource;
+  dsqlEndpoint: string;
   ecsCluster: ecs.Cluster;
   taskDefinitions: {
     ingestion: ecs.FargateTaskDefinition;
@@ -82,11 +82,9 @@ export class DagsterStack extends cdk.Stack {
     // Grant DSQL access (IAM auth)
     instanceRole.addToPolicy(new iam.PolicyStatement({
       effect: iam.Effect.ALLOW,
-      actions: [
-        'dsql:DbConnect',
-        'dsql:DbConnectAdmin',
-      ],
-      resources: [props.dsqlCluster.getAtt('Arn').toString()],
+      actions: ['dsql:DbConnect', 'dsql:DbConnectAdmin'],
+      // DSQL CloudFormation resource does not expose an ARN; allow on all for now
+      resources: ['*'],
     }));
 
     // Grant CloudWatch Logs access for reading ECS task logs
@@ -120,7 +118,7 @@ export class DagsterStack extends cdk.Stack {
               { name: 'USE_SECRETS_MANAGER', value: 'true' },
               { name: 'SECRETS_MANAGER_SECRET_NAME', value: dagsterSecrets.secretName },
               // DSQL connection
-              { name: 'DSQL_CLUSTER_ENDPOINT', value: props.dsqlCluster.getAtt('Endpoint').toString() },
+              { name: 'DSQL_CLUSTER_ENDPOINT', value: props.dsqlEndpoint },
               // Task definitions for ContainerExecutor
               { 
                 name: 'ECS_TASK_DEFINITIONS', 
@@ -178,12 +176,12 @@ export class DagsterStack extends cdk.Stack {
   }
 
   private createAutoScalingConfig(): string {
-    // Create auto-scaling configuration for scale-to-zero
+    // App Runner does not support minSize=0; set minSize=1 to minimize cost
     const autoScalingConfig = new apprunner.CfnAutoScalingConfiguration(this, 'DagsterAutoScaling', {
       autoScalingConfigurationName: 'spatial-dagster-autoscaling',
       maxConcurrency: 100,
-      maxSize: 1, // Max 1 instance
-      minSize: 0, // Scale to zero!
+      maxSize: 1, // Cap at 1 instance to control cost
+      minSize: 1, // Smallest allowed by App Runner
     });
 
     return autoScalingConfig.attrAutoScalingConfigurationArn;

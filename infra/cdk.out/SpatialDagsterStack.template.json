@@ -122,11 +122,7 @@
          "Fn::Join": [
           "",
           [
-           "arn:aws:ecs:us-east-1:",
-           {
-            "Ref": "AWS::AccountId"
-           },
-           ":task/",
+           "arn:aws:ecs:us-east-1:030847345012:task/",
            {
             "Fn::ImportValue": "SpatialEcsTasksStack:ExportsOutputRefSpatialCluster03AB29BD176BCA81"
            },
@@ -154,9 +150,7 @@
         "dsql:DbConnectAdmin"
        ],
        "Effect": "Allow",
-       "Resource": {
-        "Fn::ImportValue": "SpatialDsqlStack:ExportsOutputFnGetAttDsqlClusterArnC66D17AD"
-       }
+       "Resource": "*"
       },
       {
        "Action": [
@@ -186,7 +180,7 @@
     "AutoScalingConfigurationName": "spatial-dagster-autoscaling",
     "MaxConcurrency": 100,
     "MaxSize": 1,
-    "MinSize": 0
+    "MinSize": 1
    },
    "Metadata": {
     "aws:cdk:path": "SpatialDagsterStack/DagsterAutoScaling"

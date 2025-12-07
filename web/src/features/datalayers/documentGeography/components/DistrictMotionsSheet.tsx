@@ -1,6 +1,5 @@
 "use client";
 
-import { Badge } from "@/components/ui/badge";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import {
   Sheet,
@@ -9,12 +8,14 @@ import {
   SheetHeader,
   SheetTitle,
 } from "@/components/ui/sheet";
-import { Skeleton } from "@/components/ui/skeleton";
+import {
+  DocumentCard,
+  DocumentCardSkeleton,
+} from "@/features/documents/components/DocumentCard";
 import { useMapStore } from "@/features/map/stores/mapStore";
-import { Building2, Calendar, ExternalLink, FileText } from "lucide-react";
+import { FileText } from "lucide-react";
 import { useState } from "react";
 import { useMotions } from "../hooks/useMotions";
-import { Motion, partyColors, partyNames } from "../lib/motionsApi";
 import { useDistrictStore } from "../stores/districtStore";
 import { MotionDetailDialog } from "./MotionDetailDialog";
 
@@ -82,7 +83,7 @@ export function DistrictMotionsSheet() {
             {isLoading ? (
               <div className="space-y-3">
                 {Array.from({ length: 5 }).map((_, i) => (
-                  <MotionSkeleton key={i} />
+                  <DocumentCardSkeleton key={i} />
                 ))}
               </div>
             ) : isError ? (
@@ -107,11 +108,11 @@ export function DistrictMotionsSheet() {
             ) : (
               <div className="space-y-2">
                 {motions.map((motion, index) => (
-                  <MotionCard
+                  <DocumentCard
                     key={motion.dok_id}
-                    motion={motion}
+                    document={motion}
                     index={index}
-                    onClick={() => setSelectedMotionId(motion.dok_id)}
+                    onSelect={setSelectedMotionId}
                   />
                 ))}
               </div>
@@ -127,113 +128,4 @@ export function DistrictMotionsSheet() {
       />
     </>
   );
-}
-
-interface MotionCardProps {
-  motion: Motion;
-  index: number;
-  onClick: () => void;
-}
-
-function MotionCard({ motion, index, onClick }: MotionCardProps) {
-  const partyColor = motion.party
-    ? partyColors[motion.party] || "bg-muted"
-    : "bg-muted";
-  const partyName = motion.party
-    ? partyNames[motion.party] || motion.party
-    : null;
-
-  return (
-    <button
-      onClick={onClick}
-      className="w-full text-left group animate-fade-in-stagger"
-      style={{ animationDelay: `${index * 30}ms` }}
-    >
-      <div className="p-4 rounded-lg border border-border bg-card/50 hover:bg-card hover:border-primary/30 transition-all duration-200 hover:shadow-md">
-        <div className="mb-2">
-          <MotionDocumentTypeBadge documentType={motion.document_type} />
-        </div>
-        <div className="flex items-start justify-between gap-3 mb-2">
-          <h4 className="font-medium text-sm text-foreground leading-snug group-hover:text-primary transition-colors line-clamp-2">
-            {motion.document_title}
-          </h4>
-          <ExternalLink className="text-muted-foreground shrink-0 opacity-0 group-hover:opacity-100 transition-opacity" />
-        </div>
-
-        <div className="flex items-center gap-2 flex-wrap">
-          {motion.party && (
-            <Badge
-              variant="secondary"
-              className={`${partyColor} text-white text-xs px-2 py-0.5`}
-            >
-              {motion.party}
-            </Badge>
-          )}
-
-          <div className="flex items-center gap-1 text-xs text-muted-foreground">
-            <Calendar className="h-3 w-3" />
-            <span>{formatDate(motion.document_date)}</span>
-          </div>
-
-          {motion.committee && (
-            <div className="flex items-center gap-1 text-xs text-muted-foreground">
-              <Building2 className="h-3 w-3" />
-              <span className="truncate max-w-[120px]">{motion.committee}</span>
-            </div>
-          )}
-        </div>
-
-        {partyName && (
-          <div className="mt-2 text-xs text-muted-foreground">{partyName}</div>
-        )}
-      </div>
-    </button>
-  );
-}
-
-const MotionDocumentTypeBadge = ({
-  documentType,
-}: {
-  documentType: Motion["document_type"];
-}) => {
-  const documentTypeLabel = {
-    frs: "Frågesedel",
-    fr: "Fråga",
-    mot: "Motion",
-    ip: "Inskickad proposition",
-  }[documentType];
-  return (
-    <Badge 
-    variant={documentType === "frs" ? "secondary" : "outline"}
-    >
-      {documentTypeLabel}
-    </Badge>
-  );
-};
-
-function MotionSkeleton() {
-  return (
-    <div className="p-4 rounded-lg border border-border bg-card/50">
-      <Skeleton className="h-4 w-3/4 mb-3" />
-      <Skeleton className="h-3 w-1/2 mb-2" />
-      <div className="flex items-center gap-2">
-        <Skeleton className="h-5 w-10 rounded-full" />
-        <Skeleton className="h-3 w-20" />
-        <Skeleton className="h-3 w-24" />
-      </div>
-    </div>
-  );
-}
-
-function formatDate(dateStr: string): string {
-  try {
-    const date = new Date(dateStr);
-    return date.toLocaleDateString("sv-SE", {
-      year: "numeric",
-      month: "short",
-      day: "numeric",
-    });
-  } catch {
-    return dateStr;
-  }
 }

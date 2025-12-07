@@ -3,6 +3,8 @@
 import { Logo } from "@/components/Logo";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import { fetchEngagementLeaderboard } from "@/features/engagement/api/engagementApi";
+import type { EngagementRow } from "@/features/engagement/api/types";
 import {
   fadeIn,
   fadeInUp,
@@ -15,8 +17,35 @@ import { motion } from "framer-motion";
 import { ArrowRight, Database, Link2, MapPin } from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
+import { useEffect, useState } from "react";
 
 export default function Home() {
+  const [leaders, setLeaders] = useState<EngagementRow[]>([]);
+  const [loadingLeaders, setLoadingLeaders] = useState(false);
+  const [leaderError, setLeaderError] = useState<string | null>(null);
+
+  useEffect(() => {
+    let mounted = true;
+    setLoadingLeaders(true);
+    fetchEngagementLeaderboard({ window_days: 7, limit: 3 })
+      .then((rows) => {
+        if (mounted) {
+          setLeaders(rows);
+          setLeaderError(null);
+        }
+      })
+      .catch((err) => {
+        if (mounted) setLeaderError("Kunde inte ladda leaderboard");
+        console.error(err);
+      })
+      .finally(() => {
+        if (mounted) setLoadingLeaders(false);
+      });
+    return () => {
+      mounted = false;
+    };
+  }, []);
+
   return (
     <div className="min-h-screen bg-background relative">
       {/* Geometric pattern overlay - subtle network/connection theme */}
@@ -34,6 +63,18 @@ export default function Home() {
               className="text-sm font-medium text-muted-foreground transition-colors hover:text-primary"
             >
               Map
+            </Link>
+            <Link
+              href="/docs"
+              className="text-sm font-medium text-muted-foreground transition-colors hover:text-primary"
+            >
+              Documents
+            </Link>
+            <Link
+              href="/leaderboard"
+              className="text-sm font-medium text-muted-foreground transition-colors hover:text-primary"
+            >
+              Leaderboard
             </Link>
             <Link
               href="#data"
@@ -67,8 +108,8 @@ export default function Home() {
               priority
             />
             {/* Layered overlays for depth - amber/teal gradient */}
-            <div className="absolute inset-0 bg-gradient-to-br from-background/50 via-background/60 to-background/70" />
-            <div className="absolute inset-0 bg-gradient-to-t from-background via-transparent to-transparent" />
+            <div className="absolute inset-0 bg-linear-to-br from-background/50 via-background/60 to-background/70" />
+            <div className="absolute inset-0 bg-linear-to-t from-background via-transparent to-transparent" />
             {/* Bold amber color cast - more dominant */}
             <div className="absolute inset-0 bg-[radial-gradient(circle_at_30%_50%,rgba(217,119,6,0.25),transparent_50%)]" />
             {/* Additional amber accent overlay for depth */}
@@ -133,15 +174,85 @@ export default function Home() {
                     <ArrowRight className="ml-2 h-5 w-5" />
                   </Button>
                 </Link>
-                <Button
-                  variant="outline"
-                  size="lg"
-                  className="border-2 border-primary/60 bg-card/60 backdrop-blur-sm font-semibold text-foreground hover:bg-primary/10 hover:border-primary transition-all"
-                >
-                  Learn More
-                </Button>
+                <Link href="/docs">
+                  <Button
+                    variant="outline"
+                    size="lg"
+                    className="border-2 border-primary/60 bg-card/60 backdrop-blur-sm font-semibold text-foreground hover:bg-primary/10 hover:border-primary transition-all"
+                  >
+                    Explore Documents
+                    <ArrowRight className="ml-2 h-5 w-5" />
+                  </Button>
+                </Link>
               </motion.div>
             </motion.div>
+          </div>
+        </div>
+      </section>
+
+      {/* Engagement teaser */}
+      <section className="relative border-b border-primary/20 py-16 bg-card/30">
+        <div className="container mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+          <div className="flex items-center justify-between flex-wrap gap-3 mb-4">
+            <div>
+              <h2 className="text-2xl sm:text-3xl font-semibold text-foreground">
+                Den här veckan: mest aktiva politiker
+              </h2>
+              <p className="text-sm text-muted-foreground">
+                Baserat på dokument, röster och anföranden de senaste 7 dagarna.
+              </p>
+            </div>
+            <Link href="/leaderboard">
+              <Button variant="outline">
+                Se hela leaderboard
+                <ArrowRight className="ml-2 h-4 w-4" />
+              </Button>
+            </Link>
+          </div>
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
+            {loadingLeaders ? (
+              <div className="text-sm text-muted-foreground">Laddar...</div>
+            ) : leaderError ? (
+              <div className="text-sm text-destructive">{leaderError}</div>
+            ) : leaders.length === 0 ? (
+              <div className="text-sm text-muted-foreground">Ingen data tillgänglig.</div>
+            ) : (
+              leaders.map((row, idx) => (
+                <div
+                  key={row.intressent_id}
+                  className="border rounded-lg p-3 bg-card/60 backdrop-blur-sm hover:border-primary transition"
+                >
+                  <div className="flex items-center justify-between">
+                    <Badge variant="secondary">{idx + 1}</Badge>
+                    <div className="text-xs text-muted-foreground">
+                      {row.electoral_district || "okänd"}
+                    </div>
+                  </div>
+                  <div className="mt-2 font-semibold">{row.display_name || row.intressent_id}</div>
+                  <div className="text-sm text-muted-foreground">{row.party || "?"}</div>
+                  <div className="mt-2 grid grid-cols-3 gap-2 text-xs text-muted-foreground">
+                    <div>
+                      <span className="text-foreground font-semibold">
+                        {row.documents_authored ?? 0}
+                      </span>{" "}
+                      docs
+                    </div>
+                    <div>
+                      <span className="text-foreground font-semibold">{row.votes ?? 0}</span> röster
+                    </div>
+                    <div>
+                      <span className="text-foreground font-semibold">
+                        {row.speeches ?? 0}
+                      </span>{" "}
+                      anföranden
+                    </div>
+                  </div>
+                  <div className="mt-1 text-xs text-muted-foreground">
+                    Ja {row.yes_votes ?? 0} • Nej {row.no_votes ?? 0} • Avstår {row.abstain_votes ?? 0}
+                  </div>
+                </div>
+              ))
+            )}
           </div>
         </div>
       </section>
@@ -171,8 +282,8 @@ export default function Home() {
                 priority
               />
               {/* Minimal overlay - let image show through */}
-              <div className="absolute inset-0 bg-gradient-to-br from-background/20 via-transparent to-background/40" />
-              <div className="absolute bottom-0 left-0 right-0 h-1/3 bg-gradient-to-t from-background via-background/50 to-transparent" />
+              <div className="absolute inset-0 bg-linear-to-br from-background/20 via-transparent to-background/40" />
+              <div className="absolute bottom-0 left-0 right-0 h-1/3 bg-linear-to-t from-background via-background/50 to-transparent" />
             </motion.div>
 
             {/* Content side - asymmetrical layout */}
@@ -276,7 +387,7 @@ export default function Home() {
       {/* Image Section with Quote */}
       <section className="relative border-b border-primary/20 py-24 overflow-hidden">
         {/* Background atmosphere */}
-        <div className="absolute inset-0 bg-gradient-to-b from-transparent via-card/10 to-transparent" />
+        <div className="absolute inset-0 bg-linear-to-b from-transparent via-card/10 to-transparent" />
 
         <div className="container mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 relative z-10">
           <motion.div
@@ -301,7 +412,7 @@ export default function Home() {
                 fill
               />
               {/* Layered overlays - investigative theme with bolder amber */}
-              <div className="absolute inset-0 bg-gradient-to-br from-background/40 via-background/50 to-background/60" />
+              <div className="absolute inset-0 bg-linear-to-br from-background/40 via-background/50 to-background/60" />
               <div className="absolute inset-0 bg-[radial-gradient(circle_at_center,rgba(217,119,6,0.15),transparent_60%)]" />
 
               {/* Quote Overlay */}
@@ -347,7 +458,7 @@ export default function Home() {
       >
         {/* Subtle background pattern */}
         <div className="absolute inset-0 pattern-dots opacity-10" />
-        <div className="absolute inset-0 bg-gradient-to-b from-transparent via-card/20 to-transparent" />
+        <div className="absolute inset-0 bg-linear-to-b from-transparent via-card/20 to-transparent" />
 
         <div className="container mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 relative z-10">
           <motion.div
@@ -393,6 +504,11 @@ export default function Home() {
                   Parliamentary speeches, voting records, document touchpoints,
                   and politician profiles from the Swedish Parliament.
                 </p>
+                <div className="mt-4">
+                  <Link href="/docs" className="text-sm font-semibold text-primary hover:underline">
+                    Open Document Explorer →
+                  </Link>
+                </div>
               </motion.div>
 
               <motion.div
@@ -450,7 +566,7 @@ export default function Home() {
       {/* CTA - Bold, Direct */}
       <section className="relative py-32 overflow-hidden">
         {/* Atmospheric background with amber accent */}
-        <div className="absolute inset-0 bg-gradient-to-b from-transparent via-card/20 to-background" />
+        <div className="absolute inset-0 bg-linear-to-b from-transparent via-card/20 to-background" />
         <div className="absolute inset-0 pattern-grid opacity-10" />
         <div className="absolute inset-0 bg-[radial-gradient(circle_at_50%_50%,rgba(217,119,6,0.08),transparent_70%)]" />
 

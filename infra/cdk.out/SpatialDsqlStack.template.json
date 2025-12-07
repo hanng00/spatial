@@ -40,44 +40,6 @@
     ]
    }
   },
-  "DsqlClusterArn": {
-   "Description": "DSQL cluster ARN",
-   "Value": {
-    "Fn::GetAtt": [
-     "DsqlCluster",
-     "Arn"
-    ]
-   }
-  },
-  "DsqlConnectionStringTemplate": {
-   "Description": "DSQL connection string template (uses IAM auth)",
-   "Value": {
-    "Fn::Join": [
-     "",
-     [
-      "postgresql://admin@",
-      {
-       "Fn::GetAtt": [
-        "DsqlCluster",
-        "Endpoint"
-       ]
-      },
-      ":5432/postgres?sslmode=require"
-     ]
-    ]
-   }
-  },
-  "ExportsOutputFnGetAttDsqlClusterArnC66D17AD": {
-   "Value": {
-    "Fn::GetAtt": [
-     "DsqlCluster",
-     "Arn"
-    ]
-   },
-   "Export": {
-    "Name": "SpatialDsqlStack:ExportsOutputFnGetAttDsqlClusterArnC66D17AD"
-   }
-  },
   "ExportsOutputFnGetAttDsqlClusterEndpoint46EA9E2D": {
    "Value": {
     "Fn::GetAtt": [

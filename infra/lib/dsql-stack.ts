@@ -13,7 +13,6 @@ import { Construct } from 'constructs';
 export class DsqlStack extends cdk.Stack {
   public readonly cluster: cdk.CfnResource;
   public readonly clusterEndpoint: string;
-  public readonly clusterArn: string;
 
   constructor(scope: Construct, id: string, props?: cdk.StackProps) {
     super(scope, id, props);
@@ -38,25 +37,12 @@ export class DsqlStack extends cdk.Stack {
     });
 
     // Get cluster attributes
-    this.clusterArn = this.cluster.getAtt('Arn').toString();
     this.clusterEndpoint = this.cluster.getAtt('Endpoint').toString();
 
     // Outputs
     new cdk.CfnOutput(this, 'DsqlClusterEndpoint', {
       value: this.clusterEndpoint,
       description: 'DSQL cluster endpoint for Dagster connection',
-    });
-
-    new cdk.CfnOutput(this, 'DsqlClusterArn', {
-      value: this.clusterArn,
-      description: 'DSQL cluster ARN',
-    });
-
-    // Connection string format for Dagster (uses IAM auth)
-    // postgresql://admin@<endpoint>:5432/postgres?sslmode=require
-    new cdk.CfnOutput(this, 'DsqlConnectionStringTemplate', {
-      value: `postgresql://admin@${this.clusterEndpoint}:5432/postgres?sslmode=require`,
-      description: 'DSQL connection string template (uses IAM auth)',
     });
   }
 }

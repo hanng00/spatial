@@ -22,6 +22,7 @@ extracted as (
         json_extract_string(d.dokintressent__intressent, '$[' || e.idx || '].namn') as name,
         json_extract_string(d.dokintressent__intressent, '$[' || e.idx || '].partibet') as party_code,
         json_extract_string(d.dokintressent__intressent, '$[' || e.idx || '].ordning') as ordning,
+        d.systemdatum as document_timestamp,
         e.idx as array_index
     from exploded e
     join {{ ref('stg_dokumentlista') }} d
@@ -37,6 +38,7 @@ select
     name as intressent_name,
     party_code,
     ordning as role_order,
+    document_timestamp,
     array_index
 from extracted
 where intressent_id is not null and length(intressent_id) > 0

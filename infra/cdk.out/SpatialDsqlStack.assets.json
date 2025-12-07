@@ -1,18 +1,18 @@
 {
   "version": "48.0.0",
   "files": {
-    "28856727aa7a8bed4a0d66bc9a31d115a371f96de7ffe69137f94d2fdc43cdbe": {
+    "5ca2163af587bab82e9bde3ea839a9e515adadabf86c64c4c6c71df1f3fd262e": {
       "displayName": "SpatialDsqlStack Template",
       "source": {
         "path": "SpatialDsqlStack.template.json",
         "packaging": "file"
       },
       "destinations": {
-        "current_account-us-east-1-ecd65d47": {
-          "bucketName": "cdk-hnb659fds-assets-${AWS::AccountId}-us-east-1",
-          "objectKey": "28856727aa7a8bed4a0d66bc9a31d115a371f96de7ffe69137f94d2fdc43cdbe.json",
+        "030847345012-us-east-1-a7cbfc2c": {
+          "bucketName": "cdk-hnb659fds-assets-030847345012-us-east-1",
+          "objectKey": "5ca2163af587bab82e9bde3ea839a9e515adadabf86c64c4c6c71df1f3fd262e.json",
           "region": "us-east-1",
-          "assumeRoleArn": "arn:${AWS::Partition}:iam::${AWS::AccountId}:role/cdk-hnb659fds-file-publishing-role-${AWS::AccountId}-us-east-1"
+          "assumeRoleArn": "arn:${AWS::Partition}:iam::030847345012:role/cdk-hnb659fds-file-publishing-role-030847345012-us-east-1"
         }
       }
     }

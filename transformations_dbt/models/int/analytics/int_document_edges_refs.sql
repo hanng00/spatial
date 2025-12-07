@@ -12,7 +12,8 @@ with exploded as (
         json_extract_string(d.dokreferens__referens, '$[' || ref_idx || '].ref_dok_bet') as target_beteckning,
         json_extract_string(d.dokreferens__referens, '$[' || ref_idx || '].ref_dok_titel') as target_title,
         json_extract_string(d.dokreferens__referens, '$[' || ref_idx || '].referenstyp') as reference_type,
-        json_extract_string(d.dokreferens__referens, '$[' || ref_idx || '].uppgift') as reference_note
+        json_extract_string(d.dokreferens__referens, '$[' || ref_idx || '].uppgift') as reference_note,
+        d.systemdatum as document_timestamp
     from {{ ref('stg_dokumentlista') }} d,
     lateral (
         select unnest(
@@ -38,7 +39,8 @@ select
     target_beteckning,
     target_title,
     ref_len as reference_array_length,
-    ref_idx as reference_index
+    ref_idx as reference_index,
+    document_timestamp
 from exploded
 where target_dok_id is not null and length(target_dok_id) > 0
   and source_dok_id is not null

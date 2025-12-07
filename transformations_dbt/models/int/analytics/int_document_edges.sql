@@ -19,7 +19,7 @@ with refs as (
         null as vote_subject,
         null as vote_description,
         null as parliamentary_session,
-        null as timestamp
+        document_timestamp as timestamp
     from {{ ref('int_document_edges_refs') }}
 ),
 persons as (
@@ -40,7 +40,7 @@ persons as (
         null as vote_subject,
         null as vote_description,
         null as parliamentary_session,
-        null as timestamp
+        document_timestamp as timestamp
     from {{ ref('int_document_edges_intressent') }}
 ),
 speeches as (
