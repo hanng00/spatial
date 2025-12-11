@@ -14,8 +14,6 @@ const nextConfig: NextConfig = {
       },
     ],
   },
-  // Exclude native modules from bundling (duckdb has native bindings)
-  serverExternalPackages: ["@duckdb/node-api"],
   // Turbopack configuration (Next.js 16 default)
   turbopack: {},
 };
