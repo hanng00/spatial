@@ -9,6 +9,7 @@
         "@deck.gl/layers": "^9.2.5",
         "@deck.gl/react": "^9.2.5",
         "@duckdb/node-api": "^1.4.3-r.1",
+        "@duckdb/node-bindings": "^1.4.3-r.1",
         "@hookform/resolvers": "^5.2.2",
         "@radix-ui/react-accordion": "^1.2.12",
         "@radix-ui/react-alert-dialog": "^1.1.15",
