@@ -1,7 +1,21 @@
 import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
-  /* config options here */
+  // Ensure DuckDB native bindings stay external and are file-traced for Node runtimes.
+  serverExternalPackages: [
+    "duckdb",
+    "@duckdb/node-api",
+    "@duckdb/node-bindings",
+  ],
+  webpack: (config) => {
+    config.externals ??= [];
+    config.externals.push({
+      duckdb: "commonjs duckdb",
+      "@duckdb/node-api": "commonjs @duckdb/node-api",
+      "@duckdb/node-bindings": "commonjs @duckdb/node-bindings",
+    });
+    return config;
+  },
   // Allow builds to proceed even if third-party packages have type issues
   typescript: {
     ignoreBuildErrors: true,
@@ -14,8 +28,6 @@ const nextConfig: NextConfig = {
       },
     ],
   },
-  // Turbopack configuration (Next.js 16 default)
-  turbopack: {},
 };
 
 export default nextConfig;
