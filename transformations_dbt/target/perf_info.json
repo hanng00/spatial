@@ -5,8 +5,8 @@
     "static_analysis_parsed_path_count": 0,
     "is_partial_parse_enabled": true,
     "is_static_analysis_enabled": true,
-    "read_files_elapsed": 0.01006883301306516,
-    "load_all_elapsed": 0.09148083301261067,
+    "read_files_elapsed": 0.017404166981577873,
+    "load_all_elapsed": 0.17375795799307525,
     "projects": [
         {
             "project_name": "riksbevakning",

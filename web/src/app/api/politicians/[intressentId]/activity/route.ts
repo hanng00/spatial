@@ -5,17 +5,27 @@ type Params = {
   intressentId: string;
 };
 
+function parseLimit(raw: string | null | undefined, fallback: number) {
+  if (!raw) return fallback;
+  const n = parseInt(raw, 10);
+  if (!Number.isFinite(n) || n <= 0) return fallback;
+  return Math.min(n, 200);
+}
+
 export async function GET(
-  _request: Request,
-  { params }: { params: Params }
+  request: Request,
+  { params }: { params: Promise<Params> }
 ) {
-  const intressentId = params.intressentId;
+  const { intressentId } = await params;
   if (!intressentId) {
     return NextResponse.json(
       { error: "intressentId required" },
       { status: 400 }
     );
   }
+
+  const { searchParams } = new URL(request.url);
+  const limit = parseLimit(searchParams.get("limit"), 5);
 
   const safeId = intressentId.replace(/'/g, "''");
 
@@ -28,7 +38,8 @@ export async function GET(
     summary as (
       select
         b.intressent_id,
-        p.party_clean as party,
+        p.display_name,
+        p.party,
         p.electoral_district,
         count(*) filter (where b.touchpoint_type = 'document') as documents_authored,
         count(*) filter (where b.touchpoint_type = 'speech') as speeches,
@@ -37,11 +48,11 @@ export async function GET(
         count(*) filter (where b.touchpoint_type = 'vote' and b.vote_choice = 'Nej') as no_votes,
         count(*) filter (where b.touchpoint_type = 'vote' and b.vote_choice = 'Avstår') as abstain_votes,
         count(distinct b.parliamentary_session) as parliamentary_sessions_active,
-        min(coalesce(b.event_timestamp, b.document_date)) as first_activity_date,
-        max(coalesce(b.event_timestamp, b.document_date)) as last_activity_date
+        min(coalesce(b.event_timestamp, b.document_date::timestamp)) as first_activity_date,
+        max(coalesce(b.event_timestamp, b.document_date::timestamp)) as last_activity_date
       from base b
-      left join main_int.int_politicians p on p.intressent_id = b.intressent_id
-      group by b.intressent_id, p.party_clean, p.electoral_district
+      left join main_mart.mart_politician360 p on p.intressent_id = b.intressent_id
+      group by b.intressent_id, p.display_name, p.party, p.electoral_district
     ),
     docs as (
       select
@@ -51,8 +62,8 @@ export async function GET(
         b.derived_doc_type
       from base b
       where b.touchpoint_type = 'document'
-      order by coalesce(b.event_timestamp, b.document_date) desc nulls last
-      limit 5
+      order by coalesce(b.event_timestamp, b.document_date::timestamp) desc nulls last
+      limit ${limit}
     ),
     votes as (
       select
@@ -65,7 +76,7 @@ export async function GET(
       from base b
       where b.touchpoint_type = 'vote'
       order by b.event_timestamp desc nulls last
-      limit 5
+      limit ${limit}
     ),
     speeches as (
       select
@@ -78,11 +89,12 @@ export async function GET(
       from base b
       where b.touchpoint_type = 'speech'
       order by b.event_timestamp desc nulls last
-      limit 5
+      limit ${limit}
     )
     select
       (select json_group_array(json_object(
         'intressent_id', s.intressent_id,
+        'display_name', s.display_name,
         'party', s.party,
         'electoral_district', s.electoral_district,
         'documents_authored', s.documents_authored,

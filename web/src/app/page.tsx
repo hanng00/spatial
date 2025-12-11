@@ -1,17 +1,18 @@
 "use client";
 
 import { Logo } from "@/components/Logo";
+import { SiteHeader } from "@/components/SiteHeader";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { fetchEngagementLeaderboard } from "@/features/engagement/api/engagementApi";
 import type { EngagementRow } from "@/features/engagement/api/types";
 import {
-  fadeIn,
-  fadeInUp,
-  fadeInUpHero,
-  heroStagger,
-  stagger,
-  timing,
+    fadeIn,
+    fadeInUp,
+    fadeInUpHero,
+    heroStagger,
+    stagger,
+    timing,
 } from "@/lib/animations";
 import { motion } from "framer-motion";
 import { ArrowRight, Database, Link2, MapPin } from "lucide-react";
@@ -51,40 +52,7 @@ export default function Home() {
       {/* Geometric pattern overlay - subtle network/connection theme */}
       <div className="fixed inset-0 pattern-grid pointer-events-none opacity-30" />
 
-      {/* Sleek Topbar */}
-      <div className="fixed top-0 left-0 right-0 z-50 backdrop-blur-md bg-background/80 border-b border-primary/20">
-        <div className="container mx-auto flex items-center justify-between px-4 py-3 sm:px-6 lg:px-8">
-          <Link href="/">
-            <Logo />
-          </Link>
-          <nav className="flex items-center gap-6">
-            <Link
-              href="/map"
-              className="text-sm font-medium text-muted-foreground transition-colors hover:text-primary"
-            >
-              Map
-            </Link>
-            <Link
-              href="/docs"
-              className="text-sm font-medium text-muted-foreground transition-colors hover:text-primary"
-            >
-              Documents
-            </Link>
-            <Link
-              href="/leaderboard"
-              className="text-sm font-medium text-muted-foreground transition-colors hover:text-primary"
-            >
-              Leaderboard
-            </Link>
-            <Link
-              href="#data"
-              className="text-sm font-medium text-muted-foreground transition-colors hover:text-primary"
-            >
-              Data
-            </Link>
-          </nav>
-        </div>
-      </div>
+      <SiteHeader />
 
       {/* Hero Section - Full Screen Dramatic Design */}
       <section className="relative h-screen w-full border-b border-primary/20 overflow-hidden">

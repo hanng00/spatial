@@ -13,6 +13,12 @@ export function SiteHeader() {
         </Link>
         <div className="flex items-center gap-2">
           <Link
+            href="/"
+            className="text-sm font-medium text-muted-foreground hover:text-primary transition-colors"
+          >
+            Home
+          </Link>
+          <Link
             href="/map"
             className="text-sm font-medium text-muted-foreground hover:text-primary transition-colors"
           >
@@ -25,10 +31,22 @@ export function SiteHeader() {
             Documents
           </Link>
           <Link
+            href="/accountability"
+            className="text-sm font-medium text-muted-foreground hover:text-primary transition-colors"
+          >
+            Accountability
+          </Link>
+          <Link
             href="/leaderboard"
             className="text-sm font-medium text-muted-foreground hover:text-primary transition-colors"
           >
             Leaderboard
+          </Link>
+          <Link
+            href="/#data"
+            className="text-sm font-medium text-muted-foreground hover:text-primary transition-colors"
+          >
+            Data
           </Link>
           <Link href="/map">
             <Button size="sm" variant="default">
